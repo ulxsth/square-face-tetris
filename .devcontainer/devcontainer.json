@@ -1,0 +1,13 @@
+{
+	"name": "Existing Dockerfile",
+	"build": {
+		"context": "..",
+		"dockerfile": "../Dockerfile",
+		"target": "build"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": ["golang.go"]
+		}
+	}
+}
