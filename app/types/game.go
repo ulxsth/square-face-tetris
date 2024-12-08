@@ -1,11 +1,14 @@
 package types 
 
 import (
+	"log"
 	"time"
 	"github.com/hajimehoshi/ebiten/v2"
 
+	"syscall/js"
 	"image/color"
 	"square-face-tetris/app/constants"
+	"square-face-tetris/app/lib/wasm"
 	
 )
 
@@ -16,6 +19,47 @@ type Game struct {
 	LastDrop    time.Time   // 最後にテトリミノが落下した時刻
 	DropInterval time.Duration // 落下間隔
 	KeyState     map[ebiten.Key]bool // キーの押下状態
+}
+
+var (
+	video js.Value
+	stream js.Value
+	canvas js.Value
+	ctx js.Value
+	det *detector.Detector
+)
+
+// ゲームの初期化
+// NOTE: package の読み込み時に 1度だけ呼び出される
+func init() {
+	// 検出器の初期化
+	det = detector.NewDetector()
+	if err := det.UnpackCascades(); err != nil {
+		log.Fatal(err)
+	}
+
+	doc := js.Global().Get("document")
+	video = doc.Call(("createElement"), "video")
+	canvas = doc.Call(("createElement"), "canvas")
+	video.Set("muted", true)
+	video.Set("videoWidth", constants.ScreenWidth)
+	video.Set("videoHeight", constants.ScreenHeight)
+	
+	// カメラの映像の取得権限をリクエスト
+	mediaDevices := js.Global().Get("navigator").Get("mediaDevices")
+	promise := mediaDevices.Call("getUserMedia", map[string]interface{}{
+		"video": true,
+		"audio": false,
+	})
+	promise.Call("then", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		stream = args[0]
+		video.Set("srcObject", stream)
+		video.Call("play")
+		canvas.Set("width", constants.ScreenWidth)
+		canvas.Set("height", constants.ScreenHeight)
+		ctx = canvas.Call("getContext", "2d")
+		return nil
+	}))
 }
 
 // ゲームの状態更新
