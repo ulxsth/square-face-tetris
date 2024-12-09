@@ -1,9 +1,9 @@
 package constants
 
 const (
-	ScreenWidth  = 640
-	ScreenHeight = 640
-	BlockSize    = 30 // 各テトリミノブロックのサイズ
-	BoardHeight  = 20
-	BoardWidth   = 20
+	ScreenWidth  = 320
+	ScreenHeight = 704
+	BlockSize    = 32 // 各テトリミノブロックのサイズ
+	BoardHeight  = 22
+	BoardWidth   = 10
 )
