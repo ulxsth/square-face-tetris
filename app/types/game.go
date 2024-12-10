@@ -38,7 +38,7 @@ var (
 // ゲームの初期化
 // NOTE: package の読み込み時に 1度だけ呼び出される
 func init() {
-	// 検出器の初期化
+	// 検出���の初期化
 	// det = detector.NewDetector()
 	// if err := det.UnpackCascades(); err != nil {
 	// 	log.Fatal(err)
@@ -152,8 +152,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 
 		if g.CanvasImage != nil {
-			// 保持している ebiten.Image を描画
-			screen.DrawImage(g.CanvasImage, nil)
+			// 保持している ebiten.Image を右上に描画
+			opts := &ebiten.DrawImageOptions{}
+			opts.GeoM.Scale(0.25, 0.2) // サイズを固定
+			opts.GeoM.Translate(float64(constants.ScreenWidth-g.CanvasImage.Bounds().Dx()/4), 0)
+			screen.DrawImage(g.CanvasImage, opts)
 		}
 		ebitenutil.DebugPrint(screen, fmt.Sprintf("%f", ebiten.ActualFPS()))
 	}
@@ -256,5 +259,5 @@ func (g *Game) lockTetromino() {
 			}
 		}
 	}
-	g.Current = nil // 新しいテ���リミノを生成
+	g.Current = nil // 新しいテトリミノを生成
 }
