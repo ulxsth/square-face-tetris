@@ -1,15 +1,15 @@
-package types 
+package types
 
 import (
 	"log"
 	"time"
+
+	"github.com/esimov/pigo/wasm/detector"
 	"github.com/hajimehoshi/ebiten/v2"
 
-	"syscall/js"
 	"image/color"
 	"square-face-tetris/app/constants"
-	"square-face-tetris/app/lib/wasm"
-	
+	"syscall/js"
 )
 
 // ゲームの状態
