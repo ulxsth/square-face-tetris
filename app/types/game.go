@@ -1,11 +1,16 @@
 package types
 
 import (
+	"bytes"
+	"encoding/base64"
+	"fmt"
+	"image"
 	"log"
 	"time"
 
-	"github.com/esimov/pigo/wasm/detector"
+	// "github.com/esimov/pigo/wasm/detector"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 
 	"image/color"
 	"square-face-tetris/app/constants"
@@ -14,29 +19,30 @@ import (
 
 // ゲームの状態
 type Game struct {
-	Board   Board // 10x20 のボード
-	Current *Tetromino  // 現在のテトリミノ
-	LastDrop    time.Time   // 最後にテトリミノが落下した時刻
-	DropInterval time.Duration // 落下間隔
+	Board        Board               // 10x20 のボード
+	Current      *Tetromino          // 現在のテトリミノ
+	LastDrop     time.Time           // 最後にテトリミノが落下した時刻
+	DropInterval time.Duration       // 落下間隔
 	KeyState     map[ebiten.Key]bool // キーの押下状態
+	CanvasImage  *ebiten.Image       // canvas から取得した画像を保持するフィールドを追加
 }
 
 var (
-	video js.Value
+	video  js.Value
 	stream js.Value
 	canvas js.Value
-	ctx js.Value
-	det *detector.Detector
+	ctx    js.Value
+	// det    *detector.Detector
 )
 
 // ゲームの初期化
 // NOTE: package の読み込み時に 1度だけ呼び出される
 func init() {
 	// 検出器の初期化
-	det = detector.NewDetector()
-	if err := det.UnpackCascades(); err != nil {
-		log.Fatal(err)
-	}
+	// det = detector.NewDetector()
+	// if err := det.UnpackCascades(); err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	doc := js.Global().Get("document")
 	video = doc.Call(("createElement"), "video")
@@ -44,7 +50,7 @@ func init() {
 	video.Set("muted", true)
 	video.Set("videoWidth", constants.ScreenWidth)
 	video.Set("videoHeight", constants.ScreenHeight)
-	
+
 	// カメラの映像の取得権限をリクエスト
 	mediaDevices := js.Global().Get("navigator").Get("mediaDevices")
 	promise := mediaDevices.Call("getUserMedia", map[string]interface{}{
@@ -99,6 +105,26 @@ func (g *Game) Update() error {
 	// キーが離された場合に状態をリセット（回転だけリセット）
 	g.ResetKeyState()
 
+	// video の映像を canvas に移す
+	if ctx.Truthy() {
+		ctx.Call("drawImage", video, 0, 0, constants.ScreenWidth, constants.ScreenHeight)
+		// canvas 経由で画面を base64 形式で取得
+		b64 := canvas.Call("toDataURL", "image/png").String()
+
+		// image.Image にデコード
+		dec, err := base64.StdEncoding.DecodeString(b64[22:])
+		if err != nil {
+			log.Fatal(err)
+		}
+		img, _, err := image.Decode(bytes.NewReader(dec))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// ebiten.Image にして保持
+		g.CanvasImage = ebiten.NewImageFromImage(img)
+	}
+
 	return nil
 }
 
@@ -110,7 +136,6 @@ func (g *Game) ResetKeyState() {
 		}
 	}
 }
-
 
 // ゲームの描画
 func (g *Game) Draw(screen *ebiten.Image) {
@@ -125,6 +150,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				screen.DrawImage(blockImage, opts)
 			}
 		}
+
+		if g.CanvasImage != nil {
+			// 保持している ebiten.Image を描画
+			screen.DrawImage(g.CanvasImage, nil)
+		}
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("%f", ebiten.ActualFPS()))
 	}
 
 	// 現在のテトリミノの描画
@@ -135,7 +166,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 					blockImage := ebiten.NewImage(constants.BlockSize, constants.BlockSize)
 					blockImage.Fill(g.Current.Color)
 					opts := &ebiten.DrawImageOptions{}
-					opts.GeoM.Translate(float64((g.Current.X+x)* constants.BlockSize), float64((g.Current.Y+y)*constants.BlockSize))
+					opts.GeoM.Translate(float64((g.Current.X+x)*constants.BlockSize), float64((g.Current.Y+y)*constants.BlockSize))
 					screen.DrawImage(blockImage, opts)
 				}
 			}
@@ -149,8 +180,6 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 	screenHeight = 640 // 画面高さを480に設定
 	return screenWidth, screenHeight
 }
-
-
 
 /*
  * tetromino
@@ -190,7 +219,6 @@ func (g *Game) rotateTetromino() {
 	g.Current.Rotation = (g.Current.Rotation + 90) % 360
 }
 
-
 /*
  * board
  *
@@ -222,11 +250,11 @@ func (g *Game) isValidPosition(tetromino *Tetromino, offsetX, offsetY int) bool 
 // ボードにテトリミノを固定
 func (g *Game) lockTetromino() {
 	for y := 0; y < len(g.Current.Shape); y++ {
-			for x := 0; x < len(g.Current.Shape[y]); x++ {
-					if g.Current.Shape[y][x] == 1 {
-							g.Board[g.Current.Y+y][g.Current.X+x] = 1
-					}
+		for x := 0; x < len(g.Current.Shape[y]); x++ {
+			if g.Current.Shape[y][x] == 1 {
+				g.Board[g.Current.Y+y][g.Current.X+x] = 1
 			}
+		}
 	}
-	g.Current = nil // 新しいテトリミノを生成
+	g.Current = nil // 新しいテ���リミノを生成
 }
