@@ -1,45 +1,89 @@
 package types
 
 import (
+	"square-face-tetris/app/constants"
+	
 	"bytes"
+	"encoding/base64"
 	"fmt"
+	"image"
 	"image/color"
 	"log"
-	"square-face-tetris/app/constants"
 	"time"
-	
+	"math/rand"
+
+	// "github.com/esimov/pigo/wasm/detector"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-
-	"math/rand"
+	
+	"syscall/js"
 )
 
 // ゲームの状態
 type Game struct {
-	Board   		 Board 					 // 10x22 のボード
-	Current 		 *Tetromino      // 現在のテトリミノ
+	Board        Board               // 10x20 のボード
+	Current      *Tetromino          // 現在のテトリミノ
+	LastDrop     time.Time           // 最後にテトリミノが落下した時刻
+	DropInterval time.Duration       // 落下間隔
 	KeyState     map[ebiten.Key]bool // キーの押下状態
-	startTime    time.Time       // ゲーム開始時刻
-	LastDrop     time.Time   		 // 最後にテトリミノが落下した時刻
-	DropInterval time.Duration 	 // 落下間隔
-	timeLimit    time.Duration   // タイムリミット
-	state        string          // ゲーム状態 ("playing" または "showingScore")
-	score        int             // スコア
+	CanvasImage  *ebiten.Image       // canvas から取得した画像を保持するフィールドを追加
+	startTime    time.Time           // ゲーム開始時刻
+	timeLimit    time.Duration       // タイムリミット
+	state        string              // ゲームの状態
+	score        int                 // スコア
 }
-
 
 const (
 	normalFontSize = 24
 	bigFontSize    = 48
+	x = 20
 )
-const x = 20
 
 var (
+	video  js.Value
+	stream js.Value
+	canvas js.Value
+	ctx    js.Value
+	// det    *detector.Detector
 	mplusFaceSource *text.GoTextFaceSource
 )
 
+// ゲームの初期化
+// NOTE: package の読み込み時に 1度だけ呼び出される
+func init() {
+	// 検出器の初期化
+	// det = detector.NewDetector()
+	// if err := det.UnpackCascades(); err != nil {
+	// 	log.Fatal(err)
+	// }
 
+	doc := js.Global().Get("document")
+	video = doc.Call(("createElement"), "video")
+	canvas = doc.Call(("createElement"), "canvas")
+	video.Set("muted", true)
+	video.Set("videoWidth", constants.ScreenWidth)
+	video.Set("videoHeight", constants.ScreenHeight)
+
+	// カメラの映像の取得権限をリクエスト
+	mediaDevices := js.Global().Get("navigator").Get("mediaDevices")
+	promise := mediaDevices.Call("getUserMedia", map[string]interface{}{
+		"video": true,
+		"audio": false,
+	})
+	promise.Call("then", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		stream = args[0]
+		video.Set("srcObject", stream)
+		video.Call("play")
+		canvas.Set("width", constants.ScreenWidth)
+		canvas.Set("height", constants.ScreenHeight)
+		ctx = canvas.Call("getContext", "2d")
+		return nil
+	}))
+}
+
+//FIXME: init と混同するので、名前を変更
 // ゲームの初期化（タイマーの設定を追加）
 func (g *Game) Init() error{
 	s, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.MPlus1pRegular_ttf))
@@ -50,7 +94,8 @@ func (g *Game) Init() error{
 
 	g.Board.Init() // Boardの初期化
 	g.startTime = time.Now()           // ゲーム開始時刻を記録
-	g.timeLimit = 3 * time.Minute      // タイムリミットを3分に設定
+	g.timeLimit = 3      // タイムリミットを3分に設定
+	// g.timeLimit = 3 * time.Minute      // タイムリミットを3分に設定
 	g.state = "playing"               // ゲームオーバー状態を初期化
 	g.KeyState = make(map[ebiten.Key]bool) // キー状態をリセット
     
@@ -115,6 +160,25 @@ func (g *Game) updatePlaying() {
 	// キーが離された場合に状態をリセット（回転だけリセット）
 	g.ResetKeyState()
 
+	// video の映像を canvas に移す
+	if ctx.Truthy() {
+		ctx.Call("drawImage", video, 0, 0, constants.ScreenWidth, constants.ScreenHeight)
+		// canvas 経由で画面を base64 形式で取得
+		b64 := canvas.Call("toDataURL", "image/png").String()
+
+		// image.Image にデコード
+		dec, err := base64.StdEncoding.DecodeString(b64[22:])
+		if err != nil {
+			log.Fatal(err)
+		}
+		img, _, err := image.Decode(bytes.NewReader(dec))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// ebiten.Image にして保持
+		g.CanvasImage = ebiten.NewImageFromImage(img)
+	}
 }
 
 // キーが離された場合に状態をリセット
@@ -195,6 +259,15 @@ func (g *Game) drawPlaying(screen *ebiten.Image) {
 				screen.DrawImage(blockImage, opts)
 			}
 		}
+
+		if g.CanvasImage != nil {
+			// 保持している ebiten.Image を右上に描画
+			opts := &ebiten.DrawImageOptions{}
+			opts.GeoM.Scale(0.25, 0.2) // サイズを固定
+			opts.GeoM.Translate(float64(constants.ScreenWidth-g.CanvasImage.Bounds().Dx()/4), 0)
+			screen.DrawImage(g.CanvasImage, opts)
+		}
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("%f", ebiten.ActualFPS()))
 	}
 
 	// 現在のテトリミノの描画
@@ -205,7 +278,7 @@ func (g *Game) drawPlaying(screen *ebiten.Image) {
 					blockImage := ebiten.NewImage(constants.BlockSize, constants.BlockSize)
 					blockImage.Fill(g.Current.Color)
 					opts := &ebiten.DrawImageOptions{}
-					opts.GeoM.Translate(float64((g.Current.X+x)* constants.BlockSize), float64((g.Current.Y+y)*constants.BlockSize))
+					opts.GeoM.Translate(float64((g.Current.X+x)*constants.BlockSize), float64((g.Current.Y+y)*constants.BlockSize))
 					screen.DrawImage(blockImage, opts)
 				}
 			}
@@ -256,8 +329,6 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 	return screenWidth, screenHeight
 }
 
-
-
 /*
  * tetromino
  *
@@ -296,7 +367,6 @@ func (g *Game) rotateTetromino() {
 	// 回転状態を更新
 	g.Current.Rotation = (g.Current.Rotation + 90) % 360
 }
-
 
 /*
  * board
