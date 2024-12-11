@@ -11,6 +11,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
+
+	"math/rand"
 )
 
 // ゲームの状態
@@ -50,7 +52,8 @@ func (g *Game) Init() error{
 	g.startTime = time.Now()           // ゲーム開始時刻を記録
 	g.timeLimit = 3 * time.Minute      // タイムリミットを3分に設定
 	g.state = "playing"               // ゲームオーバー状態を初期化
-
+	g.KeyState = make(map[ebiten.Key]bool) // キー状態をリセット
+    
 	g.newTetromino()                   // 最初のテトリミノを生成
 	g.score = 0
 	return nil 
@@ -126,8 +129,10 @@ func (g *Game) ResetKeyState() {
 func (g *Game) updateShowingScore() {
 	// スコア画面ではスペースキーを押すと終了
 	if ebiten.IsKeyPressed(ebiten.KeySpace) {
-		log.Println("Thank you for playing!")
-		return
+		err := g.Init() // ゲームを初期化
+		if err != nil {
+				log.Fatalf("Failed to initialize the game: %v", err)
+		}
 	}
 }
 
@@ -259,7 +264,8 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
  */
 // テトリミノを新しく取得
 func (g *Game) newTetromino() {
-	g.Current = &Tetrominos[0] // 現時点では I 型のテトリミノを設定
+	randomIndex := rand.Intn(len(Tetrominos)) // テトロミノのリストからランダムに選択
+	g.Current = &Tetrominos[randomIndex] // 現時点では I 型のテトリミノを設定
 	g.Current.X = 3
 	g.Current.Y = 0
 	g.LastDrop = time.Now() // 新しいテトリミノの生成時にタイマーをリセット
