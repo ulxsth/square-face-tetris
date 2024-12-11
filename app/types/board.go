@@ -7,13 +7,22 @@ import (
 )
 
 // ボードの定義
-type Board [constants.BoardHeight][constants.BoardWidth]int // 20行10列のボード
+type Board [][]int // 20行10列のボード
+
+func (b *Board) Init() {
+	// ボードを定義
+	*b = make([][]int, constants.BoardHeight)
+	for i := range *b {
+		(*b)[i] = make([]int, constants.BoardWidth)
+	}
+}
+
 
 // ボードの描画
 func (b *Board) Draw(screen *ebiten.Image) {
-	for y := 0; y < constants.BoardHeight; y++ {
-		for x := 0; x < constants.BoardWidth; x++ {
-			if b[y][x] == 1 {
+	for y := 0 ; y < constants.BoardHeight/2 + constants.BoardHeight; y++ {
+		for x := 0 ; x < constants.BlockSize + constants.BoardWidth; x++ {
+			if (*b)[y][x] == 1 {
 				blockImage := ebiten.NewImage(constants.BlockSize, constants.BlockSize)
 				blockImage.Fill(color.RGBA{0, 0, 255, 255}) // 青
 				opts := &ebiten.DrawImageOptions{}
