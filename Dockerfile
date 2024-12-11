@@ -25,7 +25,7 @@ RUN go install golang.org/x/tools/gopls@v0.12.2
 RUN go mod tidy
 
 # アプリケーションのビルド
-RUN go build -o /go/bin/app app/main.go
+# RUN go build -o /go/bin/app app/main.go
 
 # 最終的な実行
 CMD ["/go/bin/app"]
