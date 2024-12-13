@@ -2,7 +2,7 @@ package game
 
 import (
 	"square-face-tetris/app/constants"
-	"square-face-tetris/app/types"
+	"square-face-tetris/app/domain"
 	
 	"bytes"
 	"time"
@@ -17,7 +17,7 @@ import (
 
 
 type GameWrapper struct {
-	Game types.Game
+	Game domain.Game
 }
 
 var (

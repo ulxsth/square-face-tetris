@@ -5,14 +5,14 @@ import (
 	"time"
 	"github.com/hajimehoshi/ebiten/v2"
 	"square-face-tetris/app/constants"
-	"square-face-tetris/app/types"
-	"square-face-tetris/app/game"
+	"square-face-tetris/app/domain"
+	"square-face-tetris/app/domain/game"
 )
 
 func main() {
 	// ゲームインスタンスの生成
 	gameWrapper := &game.GameWrapper{
-		Game: types.Game{
+		Game: domain.Game{
 			DropInterval: 2 * time.Second,        // ブロックの落下間隔を2秒に設定
 			KeyState:     make(map[ebiten.Key]bool), // キー入力の状態を管理
 		},

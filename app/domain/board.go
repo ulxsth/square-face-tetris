@@ -1,4 +1,4 @@
-package types
+package domain
 
 import (
 	"square-face-tetris/app/constants"

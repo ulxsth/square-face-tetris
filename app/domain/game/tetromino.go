@@ -1,7 +1,7 @@
 package game
 
 import (
-	"square-face-tetris/app/types"
+	"square-face-tetris/app/domain"
 	"square-face-tetris/app/constants"
 
 	"math/rand"
@@ -12,13 +12,13 @@ import (
 )
 
 type TetrominoWrapper struct {
-	Tetromino types.Tetromino
+	Tetromino domain.Tetromino
 }
 
 // テトリミノを新しく取得
 func (g *GameWrapper) newTetromino() {
-	randomIndex := rand.Intn(len(types.Tetrominos)) // テトロミノのリストからランダムに選択
-	g.Game.Current = &types.Tetrominos[randomIndex] // 現時点では I 型のテトリミノを設定
+	randomIndex := rand.Intn(len(domain.Tetrominos)) // テトロミノのリストからランダムに選択
+	g.Game.Current = &domain.Tetrominos[randomIndex] // 現時点では I 型のテトリミノを設定
 	g.Game.Current.X = 3
 	g.Game.Current.Y = 0
 	g.Game.LastDrop = time.Now() // 新しいテトリミノの生成時にタイマーをリセット
@@ -149,7 +149,7 @@ func (g *GameWrapper) clearFullRows() {
 
 
 // ボードの範囲と重なりをチェック
-func (g *GameWrapper) isValidPosition(tetromino *types.Tetromino, offsetX, offsetY int) bool {
+func (g *GameWrapper) isValidPosition(tetromino *domain.Tetromino, offsetX, offsetY int) bool {
 	for y := 0; y < len(tetromino.Shape); y++ {
 		for x := 0; x < len(tetromino.Shape[y]); x++ {
 			if tetromino.Shape[y][x] == 1 {
