@@ -2,7 +2,7 @@ package types
 
 import (
 	"square-face-tetris/app/constants"
-	
+
 	"bytes"
 	"encoding/base64"
 	"fmt"
@@ -17,7 +17,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	
+
 	"syscall/js"
 )
 
@@ -36,9 +36,9 @@ type Game struct {
 }
 
 const (
-	normalFontSize = 24
-	bigFontSize    = 48
-	x = 20
+	NORMAL_FONT_SIZE = 24
+	BIG_FONT_SIZE    = 48
+	X = 20
 )
 
 var (
@@ -94,19 +94,17 @@ func (g *Game) Init() error{
 
 	g.Board.Init() // Boardの初期化
 	g.startTime = time.Now()           // ゲーム開始時刻を記録
-	g.timeLimit = 3      // タイムリミットを3分に設定
-	// g.timeLimit = 3 * time.Minute      // タイムリミットを3分に設定
+	g.timeLimit = 3 * time.Minute      // タイムリミットを3分に設定
 	g.state = "playing"               // ゲームオーバー状態を初期化
 	g.KeyState = make(map[ebiten.Key]bool) // キー状態をリセット
-    
+
 	g.newTetromino()                   // 最初のテトリミノを生成
 	g.score = 0
-	return nil 
+	return nil
 }
 
 // ゲームの状態更新
 func (g *Game) Update() error {
-
 	switch g.state {
 	case "playing":
 		g.updatePlaying()
@@ -161,7 +159,7 @@ func (g *Game) updatePlaying() {
 	g.ResetKeyState()
 
 	// video の映像を canvas に移す
-	if ctx.Truthy() {
+	if constants.ENABLED_CAMERA_PREVIEw && ctx.Truthy() {
 		ctx.Call("drawImage", video, 0, 0, constants.ScreenWidth, constants.ScreenHeight)
 		// canvas 経由で画面を base64 形式で取得
 		b64 := canvas.Call("toDataURL", "image/png").String()
@@ -218,7 +216,7 @@ func (g *Game) drawPlaying(screen *ebiten.Image) {
 	if remainingTime < 0 {
 		remainingTime = 0
 	}
-	
+
 	// 秒数に変換
 	totalSeconds := remainingTime.Seconds()
 
@@ -230,22 +228,22 @@ func (g *Game) drawPlaying(screen *ebiten.Image) {
 	// タイマーの表示
 	timerText := fmt.Sprintf("%02d:%02d.%02d", minutes, seconds, hundredths)
 	op1 := &text.DrawOptions{}
-	op1.GeoM.Translate(x, 20)
+	op1.GeoM.Translate(X, 20)
 	op1.ColorScale.ScaleWithColor(color.White)
 	text.Draw(screen, timerText, &text.GoTextFace{
 		Source: mplusFaceSource,
-		Size:   normalFontSize,
+		Size:   NORMAL_FONT_SIZE,
 	}, op1)
-	
+
 
 	// スコアの表示
 	scoreText := fmt.Sprintf("Score: %d", g.score)
 	op2 := &text.DrawOptions{}
-	op2.GeoM.Translate(x, 40)
+	op2.GeoM.Translate(X, 40)
 	op2.ColorScale.ScaleWithColor(color.White)
 	text.Draw(screen, scoreText,&text.GoTextFace{
 		Source: mplusFaceSource,
-		Size:   normalFontSize,
+		Size:   NORMAL_FONT_SIZE,
 	}, op2)
 
 	// ボードの描画（固定されたブロック）
@@ -294,31 +292,31 @@ func (g *Game) drawScore(screen *ebiten.Image) {
 	// スコアを表示
 	scoreText := fmt.Sprintf("Final Score: %d", g.score)
 	op3 := &text.DrawOptions{}
-	op3.GeoM.Translate(x, 60)
+	op3.GeoM.Translate(X, 60)
 	op3.ColorScale.ScaleWithColor(color.White)
 	text.Draw(screen, scoreText,&text.GoTextFace{
 		Source: mplusFaceSource,
-		Size:   normalFontSize,
+		Size:   NORMAL_FONT_SIZE,
 	}, op3)
 
 	// リスタートの指示を表示
 	restartText := "Press SPACE to Restart"
 	op4 := &text.DrawOptions{}
-	op4.GeoM.Translate(x, 80)
+	op4.GeoM.Translate(X, 80)
 	op4.ColorScale.ScaleWithColor(color.White)
 	text.Draw(screen, restartText,&text.GoTextFace{
 		Source: mplusFaceSource,
-		Size:   normalFontSize,
+		Size:   NORMAL_FONT_SIZE,
 	}, op4)
-	
+
 	// ゲーム終了のメッセージ
 	exitText := "Thank you for playing!"
 	op5 := &text.DrawOptions{}
-	op5.GeoM.Translate(x, 100)
+	op5.GeoM.Translate(X, 100)
 	op5.ColorScale.ScaleWithColor(color.White)
 	text.Draw(screen, exitText,&text.GoTextFace{
 		Source: mplusFaceSource,
-		Size:   normalFontSize,
+		Size:   NORMAL_FONT_SIZE,
 	}, op5)
 }
 
