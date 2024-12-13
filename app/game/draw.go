@@ -3,7 +3,6 @@ package game
 import (
 	"square-face-tetris/app/constants"
   
-	// "image"
 	"fmt"
 	"image/color"
 	"time"
@@ -37,18 +36,6 @@ func (g *GameWrapper) drawPlaying(screen *ebiten.Image) {
 	// 背景を塗りつぶす（紺色）
 	screen.Fill(color.RGBA{0, 0, 64, 255}) // 紺色
 	
-	// 左側の半分を塗りつぶし
-	// leftRect := image.Rect(0, 0, constants.ScreenWidth, constants.ScreenHeight)
-	// leftArea := screen.SubImage(leftRect).(*ebiten.Image)
-	// leftArea.Fill(color.Black)
-	// leftArea.Fill(color.RGBA{0, 0, 64, 255})
-
-	// 右側の半分を塗りつぶし
-	// rightRect := image.Rect(constants.ScreenWidth, 0, constants.ScreenWidth + constants.MarginWidth, constants.ScreenHeight)
-	// rightArea := screen.SubImage(rightRect).(*ebiten.Image)
-	// rightArea.Fill(color.White)
-	// rightArea.Fill(color.Black)
-
 	// 残り時間を計算
 	remainingTime := g.Game.TimeLimit - time.Since(g.Game.StartTime)
 	if remainingTime < 0 {
