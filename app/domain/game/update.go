@@ -1,20 +1,13 @@
 package game
 
 import (
-	"square-face-tetris/app/constants"
-
-	"bytes"
-	"encoding/base64"
-	"image"
 	"log"
+	"square-face-tetris/app/domain/wasm"
 	"time"
 
 	// "github.com/esimov/pigo/wasm/detector"
 	"github.com/hajimehoshi/ebiten/v2"
-
 )
-
-
 
 // ゲームの状態更新
 func (g *GameWrapper) Update() error {
@@ -100,25 +93,7 @@ func (g *GameWrapper) updatePlaying() {
 	// キーが離された場合に状態をリセット（回転だけリセット）
 	g.Game.ResetKeyState()
 
-	// video の映像を canvas に移す
-	if ctx.Truthy() {
-		ctx.Call("drawImage", video, 0, 0, constants.ScreenWidth, constants.ScreenHeight)
-		// canvas 経由で画面を base64 形式で取得
-		b64 := canvas.Call("toDataURL", "image/png").String()
-
-		// image.Image にデコード
-		dec, err := base64.StdEncoding.DecodeString(b64[22:])
-		if err != nil {
-			log.Fatal(err)
-		}
-		img, _, err := image.Decode(bytes.NewReader(dec))
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		// ebiten.Image にして保持
-		g.Game.CanvasImage = ebiten.NewImageFromImage(img)
-	}
+	wasm.UpdateCamera()
 }
 
 // 最上段が埋まっているか確認

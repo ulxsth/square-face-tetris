@@ -2,7 +2,8 @@ package game
 
 import (
 	"square-face-tetris/app/constants"
-  
+	"square-face-tetris/app/domain/wasm"
+
 	"fmt"
 	"image/color"
 	"time"
@@ -35,13 +36,13 @@ func (g *GameWrapper) Draw(screen *ebiten.Image) {
 func (g *GameWrapper) drawPlaying(screen *ebiten.Image) {
 	// 背景を塗りつぶす（紺色）
 	screen.Fill(color.RGBA{0, 0, 64, 255}) // 紺色
-	
+
 	// 残り時間を計算
 	remainingTime := g.Game.TimeLimit - time.Since(g.Game.StartTime)
 	if remainingTime < 0 {
 		remainingTime = 0
 	}
-	
+
 	// 秒数に変換
 	totalSeconds := remainingTime.Seconds()
 
@@ -59,7 +60,6 @@ func (g *GameWrapper) drawPlaying(screen *ebiten.Image) {
 		Source: mplusFaceSource,
 		Size:   normalFontSize,
 	}, op1)
-	
 
 	// スコアの表示
 	scoreText := fmt.Sprintf("Score: %d", g.Game.Score)
@@ -83,13 +83,7 @@ func (g *GameWrapper) drawPlaying(screen *ebiten.Image) {
 			}
 		}
 
-		if g.Game.CanvasImage != nil {
-			// 保持している ebiten.Image を右上に描画
-			opts := &ebiten.DrawImageOptions{}
-			opts.GeoM.Scale(0.25, 0.2) // サイズを固定
-			opts.GeoM.Translate(float64(constants.ScreenWidth-g.Game.CanvasImage.Bounds().Dx()/4), 0)
-			screen.DrawImage(g.Game.CanvasImage, opts)
-		}
+		wasm.DrawCameraPrev(screen)
 		ebitenutil.DebugPrint(screen, fmt.Sprintf("%f", ebiten.ActualFPS()))
 	}
 
@@ -133,7 +127,7 @@ func (g *GameWrapper) drawScore(screen *ebiten.Image) {
 		Source: mplusFaceSource,
 		Size:   normalFontSize,
 	}, op4)
-	
+
 	// ゲーム終了のメッセージ
 	exitText := "Thank you for playing!"
 	op5 := &text.DrawOptions{}
