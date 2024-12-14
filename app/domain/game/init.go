@@ -44,9 +44,17 @@ func (g *GameWrapper) ResetGame() error {
     g.Game.Current = g.Game.GenerateRandomTetromino() // 現在のテトリミノ
     g.Game.Next = g.Game.GenerateRandomTetromino()    // 次のテトリミノ
     g.Game.Next.Next = g.Game.GenerateRandomTetromino() // 次の次のテトリミノ
-    g.Game.NewTetromino()                  // テトリミノを生成
     g.Game.Score = 0                       // スコアのリセット
 		return nil
+}
+
+func (g *GameWrapper) NewTetromino() error {
+	// ゲームごとの状態をリセット
+	g.Game.State = "playing"                // 状態のリセット
+	g.Game.KeyState = make(map[ebiten.Key]bool) // キー状態のリセット
+	g.Game.ShiftTetrominoQueue()                  // テトリミノを生成
+	g.Game.Score = 0                       // スコアのリセット
+	return nil
 }
 
 

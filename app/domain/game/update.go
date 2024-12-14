@@ -31,7 +31,7 @@ func (g *GameWrapper) updatePlaying() {
 	}
 
 	if g.Game.Current == nil {
-		g.Game.NewTetromino()
+		g.Game.ShiftTetrominoQueue()
 	}
 
 	// ユーザー入力でテトリミノを操作
