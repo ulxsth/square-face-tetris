@@ -36,7 +36,7 @@ var (
 	previewWidth  float64
 	previewHeight float64
 
-	face domain.Face
+	Face domain.Face
 )
 
 func InitCamera() {
@@ -126,23 +126,19 @@ func UpdateCamera() {
 		DrawLandmarkPoints(landmarks)
 
 		// 初めて顔を認識したときに face を初期化
-		if face.Snapshot.Landmarks == nil {
-			face = domain.NewFace(landmarks)
-			fmt.Printf("Face initialized: %+v\n", face)
+		if Face.Snapshot.Landmarks == nil {
+			Face = domain.NewFace(landmarks)
+			fmt.Printf("Face initialized: %+v\n", Face)
 		}
 
-		if(face.IsSmile(landmarks)) {
-			fmt.Println("Smile!😎")
+		// 顔の情報を更新
+		choices := []int {
+			constants.SMILE,
+			constants.ANGRY,
+			constants.SURPRISED,
+			constants.SUS,
 		}
-		if(face.IsAngry(landmarks)) {
-			fmt.Println("Angry!😡")
-		}
-		if(face.IsSurprised(landmarks)) {
-			fmt.Println("Surprised!😲")
-		}
-		if(face.IsSus(landmarks)) {
-			fmt.Println("Sus!🤔")
-		}
+		Face.Update(landmarks, choices)
 	}
 
 	// canvas 経由で画面を base64 形式で取得

@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	"math"
 	"square-face-tetris/app/constants"
 )
@@ -29,6 +30,9 @@ type Face struct {
 		Glabella2MouthCenterRatio float64 // 眉間から口中心までの距離比率（基準値）
 		Nose2MouthBottomRatio     float64 // 鼻先から口下端までの距離比率（基準値）
 	}
+
+	// smile, angry, surprised, sus
+	EmoteFlags []bool
 }
 
 func NewFace(landmarks [][]int) Face {
@@ -77,7 +81,21 @@ func NewFace(landmarks [][]int) Face {
 	face.VerticalRatio.Glabella2MouthCenterRatio = Glabella2MouthCenterRatio
 	face.VerticalRatio.Nose2MouthBottomRatio = Nose2MouthBottomRatio
 
+	face.EmoteFlags = []bool {false, false, false, false}
+
 	return face
+}
+
+// 顔情報を更新する
+// choices は4つの選択肢に対応するインデックスを格納した配列
+func (f *Face) Update(landmarks [][]int, choices []int) {
+	// スナップショットの比率と現在の比率を比較して、表情を判定する
+	f.EmoteFlags[constants.SMILE] = f.IsSmile(landmarks)
+	f.EmoteFlags[constants.ANGRY] = f.IsAngry(landmarks)
+	f.EmoteFlags[constants.SURPRISED] = f.IsSurprised(landmarks)
+	f.EmoteFlags[constants.SUS] = f.IsSus(landmarks)
+
+	fmt.Println(f.EmoteFlags)
 }
 
 // 🙂
@@ -145,7 +163,15 @@ func (f *Face) IsSurprised(landmarks [][]int) bool {
 
 // 🤨
 func (f *Face) IsSus(landmarks [][]int) bool {
-	border := 3 // TODO: しきい値を定数化
+	EyebrowBorder := 3 // TODO: しきい値を定数化
+	faceInclinationBorder := 0.075   // TODO: しきい値を定数化
+
+	faceInclination := calcFaceInclination(landmarks)
+	fmt.Println(faceInclination)
+	if(math.Abs(faceInclination) > faceInclinationBorder) {
+		fmt.Println("かたむきすぎ！")
+		return false
+	}
 
 	leftEyebrowTop := landmarks[constants.L_EYEBROW_TOP]
 	rightEyebrowTop := landmarks[constants.R_EYEBROW_TOP]
@@ -153,8 +179,8 @@ func (f *Face) IsSus(landmarks [][]int) bool {
 	rightEyebrowInner := landmarks[constants.R_EYEBROW_INNER]
 
 	// どちらかの inner がどちらかの top より上にある場合にTrueを返す
-	isLeftHigher := (rightEyebrowTop[1] - leftEyebrowInner[1]) > border
-	isRightHigher := (leftEyebrowTop[1] - rightEyebrowInner[1]) > border
+	isLeftHigher := (rightEyebrowTop[1] - leftEyebrowInner[1]) > EyebrowBorder
+	isRightHigher := (leftEyebrowTop[1] - rightEyebrowInner[1]) > EyebrowBorder
 
 	return isLeftHigher || isRightHigher
 }
@@ -171,3 +197,15 @@ func calcCenter(p1, p2 []int) []int {
 	return []int{(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2}
 }
 
+func calcFaceInclination(landmarks [][]int) float64 {
+    // 顔の傾きを計算
+    // 左眉の上端と右眉の上端の中心座標
+    glabella := calcCenter(landmarks[constants.L_EYEBROW_INNER], landmarks[constants.R_EYEBROW_INNER])
+
+    // 口の上端と下端の中心座標
+    mouthCenter := calcCenter(landmarks[constants.T_MOUTH], landmarks[constants.B_MOUTH])
+
+    // 顔の傾きを計算
+		// 水平の場合 1.5 の近似値を返していたので、それを引いている
+    return math.Atan2(float64(mouthCenter[1]-glabella[1]), float64(mouthCenter[0]-glabella[0])) - 1.5
+}
