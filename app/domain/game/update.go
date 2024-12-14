@@ -110,7 +110,7 @@ func (g *GameWrapper) isTopRowFilled() bool {
 func (g *GameWrapper) updateShowingScore() {
 	// スコア画面ではスペースキーを押すと終了
 	if ebiten.IsKeyPressed(ebiten.KeySpace) {
-		err := g.Init() // ゲームを初期化
+		err := g.ResetGame() // ゲームを初期化
 		if err != nil {
 				log.Fatalf("Failed to initialize the game: %v", err)
 		}
