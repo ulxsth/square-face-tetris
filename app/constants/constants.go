@@ -7,11 +7,14 @@ const (
 	BoardHeight  = 22
 	BoardWidth   = 10
 
-	// カメラ機能自体をオフにする
+	// カメラ機能を有効にするかどうか
 	// ゲーム上でカメラのデータを使用している場合、エラーが発生する可能性があります
-	IS_CAMERA = false
+	IS_CAMERA = true
 
 	// カメラのプレビューを表示するかどうか
 	// ゲームプレイに影響はありません
-	IS_CAMERA_PREVIEW = false
+	IS_CAMERA_PREVIEW = true
+
+	// カメラプレビューのFPS
+	CAMERA_PREVIEW_FPS = 10
 )

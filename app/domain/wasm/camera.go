@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"image"
 	"log"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"square-face-tetris/app/constants"
@@ -12,12 +13,13 @@ import (
 )
 
 var (
-	video  js.Value
-	stream js.Value
-	canvas js.Value
-	ctx    js.Value
-	// det    *detector.Detector
-	CanvasImage *ebiten.Image
+	video          js.Value
+	stream         js.Value
+	canvas         js.Value
+	ctx            js.Value
+	CanvasImage    *ebiten.Image
+	lastUpdateTime time.Time
+	updateInterval = time.Second / constants.CAMERA_PREVIEW_FPS
 )
 
 func InitCamera() {
@@ -47,6 +49,12 @@ func InitCamera() {
 
 // FIXME: FPS のボトルネックになっている
 func UpdateCamera() {
+	// 指定された間隔が経過していない場合は更新しない
+	if time.Since(lastUpdateTime) < updateInterval {
+		return
+	}
+	lastUpdateTime = time.Now()
+
 	// video の映像を canvas に移す
 	if constants.IS_CAMERA && ctx.Truthy() {
 		ctx.Call("drawImage", video, 0, 0, constants.ScreenWidth, constants.ScreenHeight)
