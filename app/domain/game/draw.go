@@ -110,7 +110,7 @@ func (g *GameWrapper) DrawNextTetromino(screen *ebiten.Image) {
 	// 「Next」のラベルを描画
 	nextLabel := "Next:"
 	op := &text.DrawOptions{}
-	op.GeoM.Translate(constants.BoardWidth*constants.BlockSize+10, 120)
+	op.GeoM.Translate(constants.BoardWidth*constants.BlockSize+10, 160)
 	op.ColorScale.ScaleWithColor(color.White)
 	text.Draw(screen, nextLabel, &text.GoTextFace{
 		Source: mplusFaceSource,
@@ -127,7 +127,7 @@ func (g *GameWrapper) DrawNextTetromino(screen *ebiten.Image) {
 					opts := &ebiten.DrawImageOptions{}
 					opts.GeoM.Translate(
 						float64(constants.BoardWidth*constants.BlockSize+10+(x*constants.BlockSize)),
-						float64(150+(y*constants.BlockSize)),
+						float64(192+(y*constants.BlockSize)),
 					)
 					screen.DrawImage(blockImage, opts)
 				}
@@ -140,7 +140,7 @@ func (g *GameWrapper) DrawAfterNextTetromino(screen *ebiten.Image) {
 	// 「Next」のラベルを描画
 	nextLabel := "After Next: "
 	op := &text.DrawOptions{}
-	op.GeoM.Translate(constants.BoardWidth*constants.BlockSize+10, 200)
+	op.GeoM.Translate(constants.BoardWidth*constants.BlockSize+10, 320)
 	op.ColorScale.ScaleWithColor(color.White)
 	text.Draw(screen, nextLabel , &text.GoTextFace{
 		Source: mplusFaceSource,
@@ -157,7 +157,7 @@ func (g *GameWrapper) DrawAfterNextTetromino(screen *ebiten.Image) {
 						opts := &ebiten.DrawImageOptions{}
 						opts.GeoM.Translate(
 							float64(constants.BoardWidth*constants.BlockSize+10+(x*constants.BlockSize)),
-							float64(230+(y*constants.BlockSize)),
+							float64(352+(y*constants.BlockSize)),
 						)
 						screen.DrawImage(blockImage, opts)
 					}
