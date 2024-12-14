@@ -56,32 +56,36 @@ func UpdateCamera() {
 	lastUpdateTime = time.Now()
 
 	// video の映像を canvas に移す
-	if constants.IS_CAMERA && ctx.Truthy() {
-		ctx.Call("drawImage", video, 0, 0, constants.ScreenWidth, constants.ScreenHeight)
-		// canvas 経由で画面を base64 形式で取得
-		b64 := canvas.Call("toDataURL", "image/png").String()
-
-		// image.Image にデコード
-		dec, err := base64.StdEncoding.DecodeString(b64[22:])
-		if err != nil {
-			log.Fatal(err)
-		}
-		img, _, err := image.Decode(bytes.NewReader(dec))
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		// ebiten.Image にして保持
-		CanvasImage = ebiten.NewImageFromImage(img)
+	if !constants.IS_CAMERA || !ctx.Truthy() {
+		return
 	}
+
+	ctx.Call("drawImage", video, 0, 0, constants.ScreenWidth, constants.ScreenHeight)
+	// canvas 経由で画面を base64 形式で取得
+	b64 := canvas.Call("toDataURL", "image/png").String()
+
+	// image.Image にデコード
+	dec, err := base64.StdEncoding.DecodeString(b64[22:])
+	if err != nil {
+		log.Fatal(err)
+	}
+	img, _, err := image.Decode(bytes.NewReader(dec))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// ebiten.Image にして保持
+	CanvasImage = ebiten.NewImageFromImage(img)
 }
 
 func DrawCameraPrev(screen *ebiten.Image) {
-	if constants.IS_CAMERA_PREVIEW && CanvasImage != nil {
-		// 保持している ebiten.Image を右上に描画
-		opts := &ebiten.DrawImageOptions{}
-		opts.GeoM.Scale(0.25, 0.2) // サイズを固定
-		opts.GeoM.Translate(float64(constants.ScreenWidth-CanvasImage.Bounds().Dx()/4), 0)
-		screen.DrawImage(CanvasImage, opts)
+	if !constants.IS_CAMERA_PREVIEW || CanvasImage == nil {
+		return
 	}
+
+	// 保持している ebiten.Image を右上に描画
+	opts := &ebiten.DrawImageOptions{}
+	opts.GeoM.Scale(0.25, 0.2) // サイズを固定
+	opts.GeoM.Translate(float64(constants.ScreenWidth-CanvasImage.Bounds().Dx()/4), 0)
+	screen.DrawImage(CanvasImage, opts)
 }
