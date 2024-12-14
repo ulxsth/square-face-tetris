@@ -32,6 +32,11 @@ func (g *GameWrapper) Draw(screen *ebiten.Image) {
 	}
 }
 
+var InstructionText = []string{
+	"操作方法",   // 1行目
+	"移動: ←↓→", // 2行目
+	"回転: ↑",    // 3行目
+}
 // スコア画面の描画
 func (g *GameWrapper) drawStart(screen *ebiten.Image) {
 	// 背景を塗りつぶす
@@ -58,14 +63,16 @@ func (g *GameWrapper) drawStart(screen *ebiten.Image) {
 	}, op4)
 
 	// ゲーム終了のメッセージ
-	InstructionText := "How to Play"
 	op5 := &text.DrawOptions{}
 	op5.GeoM.Translate(x, 140)
 	op5.ColorScale.ScaleWithColor(color.White)
-	text.Draw(screen, InstructionText,&text.GoTextFace{
-		Source: mplusFaceSource,
-		Size:   normalFontSize,
-	}, op5)
+	for _, line := range InstructionText {
+    op5.GeoM.Translate(0, float64(constants.BlockSize)) // 各行の縦位置をずらす
+    text.Draw(screen, line, &text.GoTextFace{
+        Source: mplusFaceSource,
+        Size:   normalFontSize,
+    }, op5)
+	}
 }
 
 
