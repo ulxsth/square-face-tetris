@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"square-face-tetris/app/constants"
 	"time"
-	// "github.com/esimov/pigo/wasm/detector"
 )
 
 // テトリミノの定義

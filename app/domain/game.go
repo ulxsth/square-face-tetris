@@ -2,7 +2,6 @@ package domain
 
 import (
 	"time"
-	// "github.com/esimov/pigo/wasm/detector"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
