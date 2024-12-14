@@ -6,4 +6,7 @@ const (
 	BlockSize    = 32 // 各テトリミノブロックのサイズ
 	BoardHeight  = 22
 	BoardWidth   = 10
+
+	// カメラのプレビューを表示するかどうか
+	IS_CAMERA_PREVIEW = false
 )

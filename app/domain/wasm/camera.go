@@ -68,7 +68,7 @@ func UpdateCamera() {
 }
 
 func DrawCameraPrev(screen *ebiten.Image) {
-	if CanvasImage != nil {
+	if constants.IS_CAMERA_PREVIEW && CanvasImage != nil {
 		// 保持している ebiten.Image を右上に描画
 		opts := &ebiten.DrawImageOptions{}
 		opts.GeoM.Scale(0.25, 0.2) // サイズを固定
