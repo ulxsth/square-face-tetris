@@ -130,6 +130,10 @@ func UpdateCamera() {
 			face = domain.NewFace(landmarks)
 			fmt.Printf("Face initialized: %+v\n", face)
 		}
+
+		if(face.IsSmile(landmarks)) {
+			fmt.Println("Smile!😎")
+		}
 	}
 
 	// canvas 経由で画面を base64 形式で取得

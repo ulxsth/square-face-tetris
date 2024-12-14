@@ -59,7 +59,9 @@ func NewFace(landmarks [][]int) Face {
 	return face
 }
 
-func (f *Face) IsSmile(landmarks [][]int, border float64) bool {
+func (f *Face) IsSmile(landmarks [][]int) bool {
+	border := 5.0   // TODO: しきい値を定数化
+
 	mouthLeft := landmarks[constants.L_MOUTH]
 	mouthRight := landmarks[constants.R_MOUTH]
 	lEyeOuter := landmarks[constants.L_EYE_OUTER]
