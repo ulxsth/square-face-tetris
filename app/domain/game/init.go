@@ -38,6 +38,10 @@ func (g *GameWrapper) Init() error{
 	g.Game.State = "playing"               // ゲームオーバー状態を初期化
 	g.Game.KeyState = make(map[ebiten.Key]bool) // キー状態をリセット
 
+	g.Game.Current = g.Game.GenerateRandomTetromino()	// 次のテトリミノをランダムに生成
+	g.Game.Next = g.Game.GenerateRandomTetromino() 	// 次のテトリミノをランダムに生成
+	g.Game.Next.Next = g.Game.GenerateRandomTetromino()	// 次の次のテトリミノをランダムに生成
+	
 	g.Game.NewTetromino()                   // 最初のテトリミノを生成
 	g.Game.Score = 0
 	return nil
@@ -50,4 +54,3 @@ func (g *GameWrapper) Layout(outsideWidth, outsideHeight int) (screenWidth, scre
 	screenHeight = constants.ScreenHeight // 画面高さを480に設定
 	return screenWidth, screenHeight
 }
-
