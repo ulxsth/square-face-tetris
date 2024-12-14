@@ -2,6 +2,13 @@ package domain
 
 import (
 	"image/color"
+
+	"square-face-tetris/app/constants"
+	"math/rand"
+	"time"
+
+	// "github.com/esimov/pigo/wasm/detector"
+
 )
 
 // テトリミノの定義
@@ -65,3 +72,179 @@ var Tetrominos = []Tetromino{
 		},
 	},
 }
+
+// テトリミノを新しく取得
+func (g *Game) NewTetromino() {
+	randomIndex := rand.Intn(len(Tetrominos)) // テトロミノのリストからランダムに選択
+	g.Current = &Tetrominos[randomIndex] // 現時点では I 型のテトリミノを設定
+	g.Current.X = 3
+	g.Current.Y = 0
+	g.LastDrop = time.Now() // 新しいテトリミノの生成時にタイマーをリセット
+}
+
+// テトリミノの回転処理
+func (g *Game) RotateTetromino() {
+	// 現在の形状の行数と列数を取得
+	rows := len(g.Current.Shape)
+	cols := len(g.Current.Shape[0])
+
+	// 回転後の形状を計算
+	newShape := make([][]int, cols)
+	for i := range newShape {
+		newShape[i] = make([]int, rows)
+	}
+
+	// 回転処理：90度回転
+	for y := 0; y < rows; y++ {
+		for x := 0; x < cols; x++ {
+			newShape[x][rows-1-y] = g.Current.Shape[y][x]
+		}
+	}
+
+	// 回転後の形状を適用
+	g.Current.Shape = newShape
+
+	// 回転状態を更新
+	g.Current.Rotation = (g.Current.Rotation + 90) % 360
+}
+
+func (g *Game) IsOutOfBounds() string {
+	current := g.Current
+	rows := len(current.Shape)
+	cols := len(current.Shape[0])
+
+	// ブロックの形状の各セルを確認
+	for y := 0; y < rows; y++ {
+		for x := 0; x < cols; x++ {
+			if current.Shape[y][x] != 0 { // 非空ブロックのみ確認
+				boardX := current.X + x
+				boardY := current.Y + y
+
+				// 左側に出ている場合
+				if boardX < 0 {
+					return "left"
+				}
+
+				// 右側に出ている場合
+				if boardX >= constants.BoardWidth {
+					return "right"
+				}
+
+				// 下側に出ている場合
+				if boardY >= constants.BoardHeight {
+					return "bottom"
+				}
+			}
+		}
+	}
+	// 範囲外ではない場合は空文字を返す
+	return ""
+}
+
+func (g *Game) IsOverlapping() bool {
+	current := g.Current
+	rows := len(current.Shape)
+	cols := len(current.Shape[0])
+
+	// ブロックの形状の各セルを確認
+	for y := 0; y < rows; y++ {
+		for x := 0; x < cols; x++ {
+			if current.Shape[y][x] != 0 { // 非空ブロックのみ確認
+				boardX := current.X + x
+				boardY := current.Y + y
+
+				// ボード上に位置している場合のみ重なりを確認
+				if boardY >= 0 && boardY < constants.BoardHeight && 
+				   boardX >= 0 && boardX < constants.BoardWidth {
+					if g.Board[boardY][boardX] != 0 {
+						return true // 他のブロックと重なっている
+					}
+				}
+			}
+		}
+	}
+	return false // 重なりがない
+}
+
+
+// 横一列が揃った行を削除し、スコアを加算
+func (g *Game) ClearFullRows() {
+	clearedRows := 0
+
+	// 上から下へループ
+	for y := len(g.Board) - 1; y >= 0; y-- {
+		full := true
+		for x := 0; x < len(g.Board[y]); x++ {
+			if g.Board[y][x] == 0 {
+				full = false
+				break
+			}
+		}
+
+		// 横一列が揃っている場合
+		if full {
+			clearedRows++
+
+			// 上の行を下にずらす
+			for yy := y; yy > 0; yy-- {
+				g.Board[yy] = g.Board[yy-1]
+			}
+
+			// 一番上の行を初期化
+			g.Board[0] = make([]int, len(g.Board[0]))
+
+			// 現在の行を再チェック（行をずらしたため）
+			y++
+		}
+	}
+
+	// スコアを加算（1行100点、2行300点、3行600点、4行1000点）
+	if clearedRows > 0 {
+		g.Score += clearedRows * (clearedRows + 1) / 2 * 100
+	}
+}
+
+
+
+// ボードの範囲と重なりをチェック
+func (g *Game) IsValidPosition(tetromino *Tetromino, offsetX, offsetY int) bool {
+	for y := 0; y < len(tetromino.Shape); y++ {
+		for x := 0; x < len(tetromino.Shape[y]); x++ {
+			if tetromino.Shape[y][x] == 1 {
+				newX := tetromino.X + x + offsetX
+				newY := tetromino.Y + y + offsetY
+
+				// ボードの範囲外をチェック
+				if newX < 0 || newX >= len(g.Board[0]) || newY >= len(g.Board) {
+					return false
+				}
+
+				// 他のブロックと重なっていないかをチェック
+				if newY >= 0 && g.Board[newY][newX] == 1 {
+					return false
+				}
+			}
+		}
+	}
+	return true
+}
+
+// ボードにテトリミノを固定
+// ボードにテトリミノを固定
+func (g *Game) LockTetromino() {
+	for y := 0; y < len(g.Current.Shape); y++ {
+		for x := 0; x < len(g.Current.Shape[y]); x++ {
+			if g.Current.Shape[y][x] == 1 {
+				g.Board[g.Current.Y+y][g.Current.X+x] = 1
+			}
+		}
+	}
+
+	// 横一列が揃っているか確認
+	g.ClearFullRows()
+
+	// 新しいテトリミノを生成
+	g.Current = nil
+}
+
+
