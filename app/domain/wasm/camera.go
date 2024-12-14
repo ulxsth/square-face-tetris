@@ -112,7 +112,7 @@ func UpdateCamera() {
 	res := det.DetectFaces(pixels, cameraHeight, cameraWidth)
 	if len(res) > 0 {
 		fmt.Printf("Face detected: [%v,%v], scale: %v, reliability: %v\n", res[0][0], res[0][1], res[0][2], res[0][3])
-		drawFaceRect(res)
+		DrawFaceRect(res)
 
 		// 両目の位置を取得
 		leftEye := det.DetectLeftPupil(res[0])
@@ -120,15 +120,7 @@ func UpdateCamera() {
 
 		// 顔のランドマークを取得
 		landmarks := det.DetectLandmarkPoints(leftEye, rightEye)
-
-		for i := 0; i < 7; i++ {
-			if len(landmarks[i]) >= 2 {
-				ctx.Set("fillStyle", "red")
-				ctx.Call("beginPath")
-				ctx.Call("rect", landmarks[i][0]-2, landmarks[i][1]-2, 4, 4)
-				ctx.Call("fill")
-			}
-		}
+		DrawLandmarkPoints(landmarks)
 	}
 
 	// canvas 経由で画面を base64 形式で取得
@@ -148,7 +140,7 @@ func UpdateCamera() {
 	CanvasImage = ebiten.NewImageFromImage(img)
 }
 
-func drawFaceRect(dets [][]int) {
+func DrawFaceRect(dets [][]int) {
 	for _, det := range dets {
 		ctx.Set("lineWidth", 10)
 		ctx.Set("strokeStyle", "rgba(255, 0, 0, 0.5)")
@@ -169,6 +161,18 @@ func DrawCameraPrev(screen *ebiten.Image) {
 	opts.GeoM.Scale(previewWidth/float64(CanvasImage.Bounds().Dx()), previewHeight/float64(CanvasImage.Bounds().Dy()))
 	opts.GeoM.Translate(float64(constants.ScreenWidth)-previewWidth, 0)
 	screen.DrawImage(CanvasImage, opts)
+}
+
+func DrawLandmarkPoints(landmarks [][]int) {
+		for i := 0; i < len(landmarks); i++ {
+			if len(landmarks[i]) >= 2 {
+				ctx.Set("fillStyle", "red")
+				ctx.Call("beginPath")
+				ctx.Call("rect", landmarks[i][0]-2, landmarks[i][1]-2, 4, 4)
+				ctx.Call("fill")
+			}
+		}
+
 }
 
 func rgbaToGrayscale(data []uint8) []uint8 {

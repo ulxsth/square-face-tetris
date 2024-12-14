@@ -31,8 +31,8 @@ const (
 	R_EYE_OUTER     = 8
 	L_EYE_OUTER     = 9
 	NOSE            = 10
-	MOUSE_RIGHT     = 11
-	MOUSE_BOTTOM    = 12
-	MOUSE_TOP       = 13
-	MOUSE_LEFT      = 14
+	R_MOUTH         = 11
+	B_MOUTH         = 12
+	T_MOUTH         = 13
+	L_MOUTH         = 14
 )
