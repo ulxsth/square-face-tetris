@@ -5,7 +5,6 @@ import (
 	"square-face-tetris/app/domain/wasm"
 	"time"
 
-	// "github.com/esimov/pigo/wasm/detector"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 

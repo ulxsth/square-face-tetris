@@ -16,5 +16,5 @@ const (
 	IS_CAMERA_PREVIEW = true
 
 	// カメラプレビューのFPS
-	CAMERA_PREVIEW_FPS = 10
+	CAMERA_PREVIEW_FPS = 5
 )

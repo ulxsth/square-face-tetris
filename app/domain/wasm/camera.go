@@ -3,26 +3,42 @@ package wasm
 import (
 	"bytes"
 	"encoding/base64"
+	"fmt"
+
+	// "fmt"
 	"image"
 	"log"
 	"time"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	"square-face-tetris/app/constants"
 	"syscall/js"
+
+	"github.com/esimov/pigo/wasm/detector"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 var (
-	video          js.Value
-	stream         js.Value
-	canvas         js.Value
-	ctx            js.Value
+	video       js.Value
+	stream      js.Value
+	canvas      js.Value
+	ctx         js.Value
+	cascadeFile []byte
+	det         *detector.Detector
+
 	CanvasImage    *ebiten.Image
 	lastUpdateTime time.Time
 	updateInterval = time.Second / constants.CAMERA_PREVIEW_FPS
 )
 
 func InitCamera() {
+	// 分析器の初期化
+	det = detector.NewDetector()
+	err := det.UnpackCascades()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// DOM 要素の取得
 	doc := js.Global().Get("document")
 	video = doc.Call(("createElement"), "video")
 	canvas = doc.Call(("createElement"), "canvas")
@@ -47,9 +63,8 @@ func InitCamera() {
 	}))
 }
 
-// FIXME: FPS のボトルネックになっている
 func UpdateCamera() {
-	// 指定された間隔が経過していない場合は更新しない
+	// 一定間隔で映像を取得
 	if time.Since(lastUpdateTime) < updateInterval {
 		return
 	}
@@ -63,6 +78,11 @@ func UpdateCamera() {
 	ctx.Call("drawImage", video, 0, 0, constants.ScreenWidth, constants.ScreenHeight)
 	// canvas 経由で画面を base64 形式で取得
 	b64 := canvas.Call("toDataURL", "image/png").String()
+	ctx.Call("drawImage", video, 0, 0)
+	rgba := ctx.Call("getImageData", 0, 0, constants.ScreenWidth, constants.ScreenHeight, map[string]interface{}{
+		"willReadFrequently": true,
+	}).Get("data")
+	fmt.Println(rgba)
 
 	// image.Image にデコード
 	dec, err := base64.StdEncoding.DecodeString(b64[22:])
