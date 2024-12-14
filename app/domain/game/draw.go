@@ -86,6 +86,9 @@ func (g *GameWrapper) drawPlaying(screen *ebiten.Image) {
 		ebitenutil.DebugPrint(screen, fmt.Sprintf("%f", ebiten.ActualFPS()))
 	}
 
+	g.DrawNextTetromino(screen)
+	g.DrawAfterNextTetromino(screen)
+
 	// 現在のテトリミノの描画
 	if g.Game.Current != nil {
 		for y := 0; y < len(g.Game.Current.Shape); y++ {
@@ -100,6 +103,67 @@ func (g *GameWrapper) drawPlaying(screen *ebiten.Image) {
 			}
 		}
 	}
+}
+
+// 次のテトロミノの描画
+func (g *GameWrapper) DrawNextTetromino(screen *ebiten.Image) {
+	// 「Next」のラベルを描画
+	nextLabel := "Next:"
+	op := &text.DrawOptions{}
+	op.GeoM.Translate(constants.BoardWidth*constants.BlockSize+10, 120)
+	op.ColorScale.ScaleWithColor(color.White)
+	text.Draw(screen, nextLabel, &text.GoTextFace{
+		Source: mplusFaceSource,
+		Size:   normalFontSize,
+	}, op)
+
+	// 次のテトロミノの描画
+	if g.Game.Next != nil {
+		for y := 0; y < len(g.Game.Next.Shape); y++ {
+			for x := 0; x < len(g.Game.Next.Shape[y]); x++ {
+				if g.Game.Next.Shape[y][x] == 1 {
+					blockImage := ebiten.NewImage(constants.BlockSize, constants.BlockSize)
+					blockImage.Fill(g.Game.Next.Color) // 次のテトロミノの色
+					opts := &ebiten.DrawImageOptions{}
+					opts.GeoM.Translate(
+						float64(constants.BoardWidth*constants.BlockSize+10+(x*constants.BlockSize)),
+						float64(150+(y*constants.BlockSize)),
+					)
+					screen.DrawImage(blockImage, opts)
+				}
+			}
+		}
+	}
+}
+
+func (g *GameWrapper) DrawAfterNextTetromino(screen *ebiten.Image) {
+	// 「Next」のラベルを描画
+	nextLabel := "After Next: "
+	op := &text.DrawOptions{}
+	op.GeoM.Translate(constants.BoardWidth*constants.BlockSize+10, 200)
+	op.ColorScale.ScaleWithColor(color.White)
+	text.Draw(screen, nextLabel , &text.GoTextFace{
+		Source: mplusFaceSource,
+		Size:   normalFontSize,
+	}, op)
+
+		// 次のテトロミノの描画
+		if g.Game.Next.Next != nil {
+			for y := 0; y < len(g.Game.Next.Next.Shape); y++ {
+				for x := 0; x < len(g.Game.Next.Next.Shape[y]); x++ {
+					if g.Game.Next.Next.Shape[y][x] == 1 {
+						blockImage := ebiten.NewImage(constants.BlockSize, constants.BlockSize)
+						blockImage.Fill(g.Game.Next.Next.Color) // 次のテトロミノの色
+						opts := &ebiten.DrawImageOptions{}
+						opts.GeoM.Translate(
+							float64(constants.BoardWidth*constants.BlockSize+10+(x*constants.BlockSize)),
+							float64(230+(y*constants.BlockSize)),
+						)
+						screen.DrawImage(blockImage, opts)
+					}
+				}
+			}
+		}
 }
 
 // スコア画面の描画
@@ -120,7 +184,7 @@ func (g *GameWrapper) drawScore(screen *ebiten.Image) {
 	// リスタートの指示を表示
 	restartText := "Press SPACE to Restart"
 	op4 := &text.DrawOptions{}
-	op4.GeoM.Translate(x, 80)
+	op4.GeoM.Translate(x, 100)
 	op4.ColorScale.ScaleWithColor(color.White)
 	text.Draw(screen, restartText,&text.GoTextFace{
 		Source: mplusFaceSource,
@@ -130,7 +194,7 @@ func (g *GameWrapper) drawScore(screen *ebiten.Image) {
 	// ゲーム終了のメッセージ
 	exitText := "Thank you for playing!"
 	op5 := &text.DrawOptions{}
-	op5.GeoM.Translate(x, 100)
+	op5.GeoM.Translate(x, 140)
 	op5.ColorScale.ScaleWithColor(color.White)
 	text.Draw(screen, exitText,&text.GoTextFace{
 		Source: mplusFaceSource,

@@ -10,6 +10,7 @@ import (
 type Game struct {
 	Board        Board               // 10x20 のボード
 	Current      *Tetromino          // 現在のテトリミノ
+	Next         *Tetromino             // 次のテトリミノ
 	LastDrop     time.Time           // 最後にテトリミノが落下した時刻
 	DropInterval time.Duration       // 落下間隔
 	KeyState     map[ebiten.Key]bool // キーの押下状態
