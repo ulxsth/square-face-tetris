@@ -23,12 +23,52 @@ const (
 // ゲームの描画
 func (g *GameWrapper) Draw(screen *ebiten.Image) {
 	switch g.Game.State {
+		case "start":
+			g.drawStart(screen)
 		case "playing":
 			g.drawPlaying(screen)
 		case "showingScore":
 			g.drawScore(screen)
 	}
 }
+
+// スコア画面の描画
+func (g *GameWrapper) drawStart(screen *ebiten.Image) {
+	// 背景を塗りつぶす
+	screen.Fill(color.Black)
+
+	// スコアを表示
+	TitleText := "Title"
+	op3 := &text.DrawOptions{}
+	op3.GeoM.Translate(x, 60)
+	op3.ColorScale.ScaleWithColor(color.White)
+	text.Draw(screen, TitleText,&text.GoTextFace{
+		Source: mplusFaceSource,
+		Size:   normalFontSize,
+	}, op3)
+
+	// リスタートの指示を表示
+	startText := "Press SPACE to start"
+	op4 := &text.DrawOptions{}
+	op4.GeoM.Translate(x, 100)
+	op4.ColorScale.ScaleWithColor(color.White)
+	text.Draw(screen, startText,&text.GoTextFace{
+		Source: mplusFaceSource,
+		Size:   normalFontSize,
+	}, op4)
+
+	// ゲーム終了のメッセージ
+	InstructionText := "How to Play"
+	op5 := &text.DrawOptions{}
+	op5.GeoM.Translate(x, 140)
+	op5.ColorScale.ScaleWithColor(color.White)
+	text.Draw(screen, InstructionText,&text.GoTextFace{
+		Source: mplusFaceSource,
+		Size:   normalFontSize,
+	}, op5)
+}
+
+
 
 
 // プレイ中の描画

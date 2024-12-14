@@ -29,7 +29,7 @@ func (g *GameWrapper) Init() error {
 			return err
 	}
 	mplusFaceSource = s
-	g.ResetGame()
+	g.Game.State = "start"
 	return nil
 }
 
