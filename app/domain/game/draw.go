@@ -43,7 +43,7 @@ func (g *GameWrapper) drawStart(screen *ebiten.Image) {
 	screen.Fill(color.Black)
 
 	// スコアを表示
-	TitleText := "Title"
+	TitleText := "顔テトリス"
 	op3 := &text.DrawOptions{}
 	op3.GeoM.Translate(x, 60)
 	op3.ColorScale.ScaleWithColor(color.White)
@@ -53,7 +53,7 @@ func (g *GameWrapper) drawStart(screen *ebiten.Image) {
 	}, op3)
 
 	// リスタートの指示を表示
-	startText := "Press SPACE to start"
+	startText := "スペースキーを押してスタート"
 	op4 := &text.DrawOptions{}
 	op4.GeoM.Translate(x, 100)
 	op4.ColorScale.ScaleWithColor(color.White)
@@ -219,7 +219,7 @@ func (g *GameWrapper) drawScore(screen *ebiten.Image) {
 	screen.Fill(color.Black)
 
 	// スコアを表示
-	scoreText := fmt.Sprintf("Final Score: %d", g.Game.Score)
+	scoreText := fmt.Sprintf("総スコア: %d", g.Game.Score)
 	op3 := &text.DrawOptions{}
 	op3.GeoM.Translate(x, 60)
 	op3.ColorScale.ScaleWithColor(color.White)
@@ -229,7 +229,7 @@ func (g *GameWrapper) drawScore(screen *ebiten.Image) {
 	}, op3)
 
 	// リスタートの指示を表示
-	restartText := "Press SPACE to Restart"
+	restartText := "スペースを押して再スタート"
 	op4 := &text.DrawOptions{}
 	op4.GeoM.Translate(x, 100)
 	op4.ColorScale.ScaleWithColor(color.White)
@@ -239,7 +239,7 @@ func (g *GameWrapper) drawScore(screen *ebiten.Image) {
 	}, op4)
 
 	// ゲーム終了のメッセージ
-	exitText := "Thank you for playing!"
+	exitText := "Nice, Face!"
 	op5 := &text.DrawOptions{}
 	op5.GeoM.Translate(x, 140)
 	op5.ColorScale.ScaleWithColor(color.White)
