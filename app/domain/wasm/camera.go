@@ -137,6 +137,9 @@ func UpdateCamera() {
 		if(face.IsAngry(landmarks)) {
 			fmt.Println("Angry!😡")
 		}
+		if(face.IsSurprised(landmarks)) {
+			fmt.Println("Surprised!😲")
+		}
 	}
 
 	// canvas 経由で画面を base64 形式で取得

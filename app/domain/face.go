@@ -80,6 +80,7 @@ func NewFace(landmarks [][]int) Face {
 	return face
 }
 
+// 🙂
 func (f *Face) IsSmile(landmarks [][]int) bool {
 	border := 10.0 // TODO: しきい値を定数化
 
@@ -99,9 +100,10 @@ func (f *Face) IsSmile(landmarks [][]int) bool {
 	return (currentMouthDist - basisMouthDist) > border
 }
 
+// 😠
 func (f *Face) IsAngry(landmarks [][]int) bool {
 	// TODO: しきい値を定数化
-	eyebrowBorder := -10.0
+	eyebrowBorder := -7.0
 	nose2mouthBorder := -5.0
 
 	// スナップショットの比率をもとに、現在の眉間の距離を算出する
@@ -125,6 +127,24 @@ func (f *Face) IsAngry(landmarks [][]int) bool {
 	return isAngryEyebrow && isAngryMouth
 }
 
+// 😲
+func (f *Face) IsSurprised(landmarks [][]int) bool {
+	// 口の端を結んだ距離
+	mouthLeft := landmarks[constants.L_MOUTH]
+	mouthRight := landmarks[constants.R_MOUTH]
+	mouthWidth := calcDistance(mouthLeft, mouthRight)
+
+	// 口の上下を結んだ距離
+	mouthTop := landmarks[constants.T_MOUTH]
+	mouthBottom := landmarks[constants.B_MOUTH]
+	mouthHeight := calcDistance(mouthTop, mouthBottom)
+
+	// 口の上下を結んだ距離のほうが長ければ驚いていると判別
+	return mouthHeight > mouthWidth
+}
+
+
+
 // 2点間の距離を求める。
 // ピタゴラスの定理より z = sqrt(x^2 + y^2)
 func calcDistance(p1, p2 []int) float64 {
@@ -136,3 +156,4 @@ func calcDistance(p1, p2 []int) float64 {
 func calcCenter(p1, p2 []int) []int {
 	return []int{(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2}
 }
+
