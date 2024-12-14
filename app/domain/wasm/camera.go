@@ -5,9 +5,9 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"math"
 	"image"
 	"log"
+	"math"
 	"time"
 
 	"square-face-tetris/app/constants"
@@ -29,16 +29,16 @@ var (
 	lastUpdateTime time.Time
 	updateInterval = time.Second / constants.CAMERA_PREVIEW_FPS
 
-	cameraWidth    int
-	cameraHeight   int
-	aspectRatio    float64
-	previewWidth   float64
-	previewHeight  float64
+	cameraWidth   int
+	cameraHeight  int
+	aspectRatio   float64
+	previewWidth  float64
+	previewHeight float64
 
-	showPupil = true
-	showCoord = false
-	flploc    =false
-	markerType ="rect"
+	showPupil  = true
+	showCoord  = false
+	flploc     = false
+	markerType = "rect"
 )
 
 func InitCamera() {
@@ -84,23 +84,20 @@ func InitCamera() {
 }
 
 func UpdateCamera() {
-	// 一定間隔で映像を取得
-	if time.Since(lastUpdateTime) < updateInterval {
+	if !ctx.Truthy() && time.Since(lastUpdateTime) < updateInterval {
 		return
 	}
 	lastUpdateTime = time.Now()
 
+	ctx.Call("clearRect", 0, 0, cameraWidth, cameraHeight)
+
 	// video の映像を canvas に移す
-	if !constants.IS_CAMERA || !ctx.Truthy() {
+	if !constants.IS_CAMERA {
 		return
 	}
 
 	ctx.Call("drawImage", video, 0, 0, cameraWidth, cameraHeight)
-	// canvas 経由で画面を base64 形式で取得
-	b64 := canvas.Call("toDataURL", "image/png").String()
-	ctx.Call("drawImage", video, 0, 0)
 
-	// FIXME: ここから：非同期関数に分離
 	rgba := ctx.Call("getImageData", 0, 0, cameraWidth, cameraHeight, map[string]interface{}{
 		"willReadFrequently": true,
 	}).Get("data")
@@ -108,21 +105,23 @@ func UpdateCamera() {
 
 	// 画像を分析
 	var data = make([]byte, cameraWidth*cameraHeight*4)
-		uint8Arr := js.Global().Get("Uint8Array").New(rgba)
-		js.CopyBytesToGo(data, uint8Arr)
-		pixels := rgbaToGrayscale(data)
+	uint8Arr := js.Global().Get("Uint8Array").New(rgba)
+	js.CopyBytesToGo(data, uint8Arr)
+	pixels := rgbaToGrayscale(data)
 
-		// det.DetectFaces は画像データを受け取り、以下のデータを返す
-		// [row, col, scale, q]
-		// row, col: 顔の中心座標
-		// scale: 顔のスケール
-		// q: 顔であることの信頼度
-		res := det.DetectFaces(pixels, cameraHeight, cameraWidth)
-		if len(res) > 0 {
-			fmt.Printf("Face detected: [%v,%v], scale: %v\n", res[0][0], res[0][1], res[0][2])
-		}
+	// det.DetectFaces は画像データを受け取り、以下のデータを返す
+	// [row, col, scale, q]
+	// row, col: 顔の中心座標
+	// scale: 顔のスケール
+	// q: 顔であることの信頼度
+	res := det.DetectFaces(pixels, cameraHeight, cameraWidth)
+	if len(res) > 0 {
+		fmt.Printf("Face detected: [%v,%v], scale: %v, reliability: %v\n", res[0][0], res[0][1], res[0][2], res[0][3])
+		drawFaceRect(res)
+	}
 
-	// FIXME: ここまで：非同期関数に分離
+	// canvas 経由で画面を base64 形式で取得
+	b64 := canvas.Call("toDataURL", "image/png").String()
 
 	// image.Image にデコード
 	dec, err := base64.StdEncoding.DecodeString(b64[22:])
@@ -136,6 +135,17 @@ func UpdateCamera() {
 
 	// ebiten.Image にして保持
 	CanvasImage = ebiten.NewImageFromImage(img)
+}
+
+func drawFaceRect(dets [][]int) {
+	for _, det := range dets {
+		ctx.Set("lineWidth", 10)
+		ctx.Set("strokeStyle", "rgba(255, 0, 0, 0.5)")
+
+		row, col, scale := det[1], det[0], int(float64(det[2])*0.72)
+		ctx.Call("rect", row-scale/2, col-scale/2, scale, scale)
+		ctx.Call("stroke")
+	}
 }
 
 func DrawCameraPrev(screen *ebiten.Image) {
@@ -157,8 +167,8 @@ func rgbaToGrayscale(data []uint8) []uint8 {
 			// gray = 0.2*red + 0.7*green + 0.1*blue
 			data[r*cols+c] = uint8(math.Round(
 				0.2126*float64(data[r*4*cols+4*c+0]) +
-				0.7152*float64(data[r*4*cols+4*c+1]) +
-				0.0722*float64(data[r*4*cols+4*c+2])))
+					0.7152*float64(data[r*4*cols+4*c+1]) +
+					0.0722*float64(data[r*4*cols+4*c+2])))
 		}
 	}
 	return data
