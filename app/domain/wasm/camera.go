@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	// "fmt"
+	"math"
 	"image"
 	"log"
 	"time"
@@ -34,6 +34,11 @@ var (
 	aspectRatio    float64
 	previewWidth   float64
 	previewHeight  float64
+
+	showPupil = true
+	showCoord = false
+	flploc    =false
+	markerType ="rect"
 )
 
 func InitCamera() {
@@ -94,10 +99,30 @@ func UpdateCamera() {
 	// canvas 経由で画面を base64 形式で取得
 	b64 := canvas.Call("toDataURL", "image/png").String()
 	ctx.Call("drawImage", video, 0, 0)
+
+	// FIXME: ここから：非同期関数に分離
 	rgba := ctx.Call("getImageData", 0, 0, cameraWidth, cameraHeight, map[string]interface{}{
 		"willReadFrequently": true,
 	}).Get("data")
 	fmt.Println(rgba)
+
+	// 画像を分析
+	var data = make([]byte, cameraWidth*cameraHeight*4)
+		uint8Arr := js.Global().Get("Uint8Array").New(rgba)
+		js.CopyBytesToGo(data, uint8Arr)
+		pixels := rgbaToGrayscale(data)
+
+		// det.DetectFaces は画像データを受け取り、以下のデータを返す
+		// [row, col, scale, q]
+		// row, col: 顔の中心座標
+		// scale: 顔のスケール
+		// q: 顔であることの信頼度
+		res := det.DetectFaces(pixels, cameraHeight, cameraWidth)
+		if len(res) > 0 {
+			fmt.Printf("Face detected: [%v,%v], scale: %v\n", res[0][0], res[0][1], res[0][2])
+		}
+
+	// FIXME: ここまで：非同期関数に分離
 
 	// image.Image にデコード
 	dec, err := base64.StdEncoding.DecodeString(b64[22:])
@@ -123,4 +148,18 @@ func DrawCameraPrev(screen *ebiten.Image) {
 	opts.GeoM.Scale(previewWidth/float64(CanvasImage.Bounds().Dx()), previewHeight/float64(CanvasImage.Bounds().Dy()))
 	opts.GeoM.Translate(float64(constants.ScreenWidth)-previewWidth, 0)
 	screen.DrawImage(CanvasImage, opts)
+}
+
+func rgbaToGrayscale(data []uint8) []uint8 {
+	rows, cols := cameraWidth, cameraHeight
+	for r := 0; r < rows; r++ {
+		for c := 0; c < cols; c++ {
+			// gray = 0.2*red + 0.7*green + 0.1*blue
+			data[r*cols+c] = uint8(math.Round(
+				0.2126*float64(data[r*4*cols+4*c+0]) +
+				0.7152*float64(data[r*4*cols+4*c+1]) +
+				0.0722*float64(data[r*4*cols+4*c+2])))
+		}
+	}
+	return data
 }
