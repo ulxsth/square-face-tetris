@@ -22,13 +22,13 @@ type Face struct {
 	}
 	HorizonalRatio struct {
 		LEyebrowOuter2REyebrowOuterRatio float64 // 左眉外側から右眉外側までの距離比率（基準値）
-		LEyebrowTop2REyebrowTopRatio     float64 // 左眉内側から右眉内側までの距離比率（基準値）
+		LEyebrowTop2REyebrowTopRatio     float64 // 左眉内側から右眉内側までの距離比率
 		LEyebrowInner2REyebrowInnerRatio float64 // 左眉端から右眉端までの距離比率
 		LMouth2RMouthRatio               float64 // 左口端から右口端までの距離比率
 	}
 	VerticalRatio struct {
 		Glabella2MouthCenterRatio float64 // 眉間から口中心までの距離比率（基準値）
-		Nose2MouthBottomRatio     float64 // 鼻先から口下端までの距離比率（基準値）
+		Nose2MouthBottomRatio     float64 // 鼻先から口下端までの距離比率
 	}
 
 	// smile, angry, surprised, sus
