@@ -9,21 +9,23 @@ type Face struct {
 	Snapshot struct {
 		Landmarks [][]int
 		Horizonal struct {
-			LEyebrowOuter2REyebrowOuter         float64 // 左眉外側から右眉外側までの距離
-			LEyebrowTop2REyebrowTop float64 // 左眉内側から右眉内側までの距離
+			LEyebrowOuter2REyebrowOuter float64 // 左眉外側から右眉外側までの距離
+			LEyebrowTop2REyebrowTop     float64 // 左眉内側から右眉内側までの距離
 			LMouth2RMouth               float64 // 左口端から右口端までの距離
 		}
 		Vertical struct {
 			Glabella2MouthCenter float64 // 眉間から口中心までの距離
+			Nose2MouthBottom     float64 // 鼻先から口下端までの距離
 		}
 	}
 	HorizonalRatio struct {
-		LEyebrowOuter2REyebrowOuterRatio         float64 // 左眉外側から右眉外側までの距離比率（基準値）
-		LEyebrowTop2REyebrowTopRatio float64 // 左眉内側から右眉内側までの距離比率（基準値）
+		LEyebrowOuter2REyebrowOuterRatio float64 // 左眉外側から右眉外側までの距離比率（基準値）
+		LEyebrowTop2REyebrowTopRatio     float64 // 左眉内側から右眉内側までの距離比率（基準値）
 		LMouth2RMouthRatio               float64 // 左口端から右口端までの距離比率
 	}
 	VerticalRatio struct {
 		Glabella2MouthCenterRatio float64 // 眉間から口中心までの距離比率（基準値）
+		Nose2MouthBottomRatio     float64 // 鼻先から口下端までの距離比率（基準値）
 	}
 }
 
@@ -46,6 +48,9 @@ func NewFace(landmarks [][]int) Face {
 	Glabella2MouthCenter := calcDistance(glabella, mouthCenter)
 	Glabella2MouthCenterRatio := 1.0
 
+	Nose2MouthBottom := calcDistance(landmarks[constants.NOSE], landmarks[constants.B_MOUTH])
+	Nose2MouthBottomRatio := Nose2MouthBottom / Glabella2MouthCenter
+
 	// 顔情報を構造体に格納
 	var face Face
 
@@ -55,6 +60,7 @@ func NewFace(landmarks [][]int) Face {
 	face.Snapshot.Horizonal.LEyebrowTop2REyebrowTop = LEyebrowTop2REyebrowTop
 	face.Snapshot.Horizonal.LMouth2RMouth = LMouth2RMouth
 	face.Snapshot.Vertical.Glabella2MouthCenter = Glabella2MouthCenter
+	face.Snapshot.Vertical.Nose2MouthBottom = Nose2MouthBottom
 
 	// horizonalRatio
 	face.HorizonalRatio.LEyebrowOuter2REyebrowOuterRatio = LEyeOuter2REyeOuterRatio
@@ -63,6 +69,7 @@ func NewFace(landmarks [][]int) Face {
 
 	// verticalRatio
 	face.VerticalRatio.Glabella2MouthCenterRatio = Glabella2MouthCenterRatio
+	face.VerticalRatio.Nose2MouthBottomRatio = Nose2MouthBottomRatio
 
 	return face
 }
@@ -87,7 +94,9 @@ func (f *Face) IsSmile(landmarks [][]int) bool {
 }
 
 func (f *Face) IsAngry(landmarks [][]int) bool {
-	eyebrowBorder := -10.0 // TODO: しきい値を定数化
+	// TODO: しきい値を定数化
+	eyebrowBorder := -10.0
+	nose2mouthBorder := -5.0
 
 	// スナップショットの比率をもとに、現在の眉間の距離を算出する
 	// 怒っていると眉間が狭まるため、基準よりも小さい値になる
@@ -95,9 +104,20 @@ func (f *Face) IsAngry(landmarks [][]int) bool {
 	basisEyebrowTopDist := currentEyebrowOuterDist * f.HorizonalRatio.LEyebrowTop2REyebrowTopRatio
 	currentEyebrowTopDist := calcDistance(landmarks[constants.L_EYEBROW_TOP], landmarks[constants.R_EYEBROW_TOP])
 
-	return (currentEyebrowTopDist - basisEyebrowTopDist) < eyebrowBorder
-}
+	isAngryEyebrow := (currentEyebrowTopDist - basisEyebrowTopDist) < eyebrowBorder
 
+	// スナップショットの比率をもとに、現在の鼻先から口下端までの距離を算出する
+	// 怒っていると鼻先から口下端までの距離が短くなるため、基準よりも小さい値になる
+	currentGlabella := calcCenter(landmarks[constants.L_EYEBROW_INNER], landmarks[constants.R_EYEBROW_INNER])
+	currentMouthCenter := calcCenter(landmarks[constants.T_MOUTH], landmarks[constants.B_MOUTH])
+	currentBasisDist := calcDistance(currentGlabella, currentMouthCenter)
+	basisNose2MouthBottomDist := currentBasisDist * f.VerticalRatio.Nose2MouthBottomRatio
+	currentNose2MouthBottomDist := calcDistance(landmarks[constants.NOSE], landmarks[constants.B_MOUTH])
+
+	isAngryMouth := (currentNose2MouthBottomDist - basisNose2MouthBottomDist) < nose2mouthBorder
+
+	return isAngryEyebrow && isAngryMouth
+}
 
 // 2点間の距離を求める。
 // ピタゴラスの定理より z = sqrt(x^2 + y^2)
