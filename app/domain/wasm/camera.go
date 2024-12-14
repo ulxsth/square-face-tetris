@@ -48,7 +48,7 @@ func InitCamera() {
 // FIXME: FPS のボトルネックになっている
 func UpdateCamera() {
 	// video の映像を canvas に移す
-	if ctx.Truthy() {
+	if constants.IS_CAMERA && ctx.Truthy() {
 		ctx.Call("drawImage", video, 0, 0, constants.ScreenWidth, constants.ScreenHeight)
 		// canvas 経由で画面を base64 形式で取得
 		b64 := canvas.Call("toDataURL", "image/png").String()
