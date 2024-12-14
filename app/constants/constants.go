@@ -35,4 +35,11 @@ const (
 	B_MOUTH         = 12
 	T_MOUTH         = 13
 	L_MOUTH         = 14
+
+	// 各表情に対応するインデックス
+	// face.Update() で choices に格納される
+	SMILE     = 0
+	ANGRY     = 1
+	SURPRISED = 2
+	SUS       = 3
 )
