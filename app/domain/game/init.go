@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"time"
 
-	// "github.com/esimov/pigo/wasm/detector"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -22,28 +21,40 @@ var (
 	mplusFaceSource *text.GoTextFaceSource
 )
 
-//FIXME: init と混同するので、名前を変更
 // ゲームの初期化（タイマーの設定を追加）
-func (g *GameWrapper) Init() error{
+func (g *GameWrapper) Init() error {
+	// ゲーム全体の初期設定
 	s, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.MPlus1pRegular_ttf))
 	if err != nil {
-		return err
+			return err
 	}
 	mplusFaceSource = s
+	g.Game.State = "start"
+	return nil
+}
 
-	g.Game.Board.Init() // Boardの初期化
-	g.Game.StartTime = time.Now()           // ゲーム開始時刻を記録
-	g.Game.TimeLimit = 10 * time.Minute      // タイムリミットを3分に設定
-	// g.Game.TimeLimit = 3 * time.Minute      // タイムリミットを3分に設定
-	g.Game.State = "playing"               // ゲームオーバー状態を初期化
-	g.Game.KeyState = make(map[ebiten.Key]bool) // キー状態をリセット
+func (g *GameWrapper) ResetGame() error {
+    // ゲームごとの状態をリセット
+    g.Game.Board.Init()                     // ボードの初期化
+    g.Game.StartTime = time.Now()           // 開始時刻の設定
+    g.Game.TimeLimit = 10 * time.Second     // タイムリミットの設定
+    g.Game.State = "playing"                // 状態のリセット
+    g.Game.KeyState = make(map[ebiten.Key]bool) // キー状態のリセット
+    g.Game.Current = g.Game.GenerateRandomTetromino() // 現在のテトリミノ
+    // Next[0]からNext[4]までを生成
+		g.Game.Next = make([]*domain.Tetromino, 5)
+		g.Game.Next[0] = g.Game.GenerateRandomTetromino()
+		g.Game.Next[1], g.Game.Next[2], g.Game.Next[3] = g.Game.GenerateUniqueTetrominos()
+    g.Game.Score = 0                       // スコアのリセット
+		return nil
+}
 
-	g.Game.Current = g.Game.GenerateRandomTetromino()	// 次のテトリミノをランダムに生成
-	g.Game.Next = g.Game.GenerateRandomTetromino() 	// 次のテトリミノをランダムに生成
-	g.Game.Next.Next = g.Game.GenerateRandomTetromino()	// 次の次のテトリミノをランダムに生成
-
-	g.Game.NewTetromino()                   // 最初のテトリミノを生成
-	g.Game.Score = 0
+func (g *GameWrapper) NewTetromino() error {
+	// ゲームごとの状態をリセット
+	g.Game.State = "playing"                // 状態のリセット
+	g.Game.KeyState = make(map[ebiten.Key]bool) // キー状態のリセット
+	g.Game.ShiftTetrominoQueue()                  // テトリミノを生成
+	g.Game.Score = 0                       // スコアのリセット
 	return nil
 }
 

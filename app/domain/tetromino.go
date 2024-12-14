@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"square-face-tetris/app/constants"
 	"time"
-	// "github.com/esimov/pigo/wasm/detector"
 )
 
 // テトリミノの定義
@@ -73,14 +72,16 @@ var Tetrominos = []Tetromino{
 }
 
 // テトリミノを新しく取得
-func (g *Game) NewTetromino() {
-	// generateRandomTetromino() で新しいテトリミノをランダムに生成
-	g.Current = g.Next
-	// 次のテトリミノをランダムに生成
-	g.Next = g.Next.Next
-	// 次の次のテトリミノをランダムに生成
-	g.Next.Next = g.GenerateRandomTetromino()
+func (g *Game) ShiftTetrominoQueue() {
+	// 現在のテトリミノをNext[0]として設定
+	g.Current = g.Next[0]
 
+	// Next[1] から Next[3] の中からランダムで選ぶ
+	randomIndex := rand.Intn(3) + 1 // 1～3 の間でランダムなインデックスを生成
+	g.Next[0] = g.Next[randomIndex]
+
+	// 次の次のテトリミノを生成
+	g.Next[1], g.Next[2], g.Next[3] = g.GenerateUniqueTetrominos()
 	// 現在のテトリミノの位置を初期化
 	g.Current.X = 3
 	g.Current.Y = 0
@@ -95,12 +96,36 @@ func (g *Game) GenerateRandomTetromino() *Tetromino {
 
 	// 選択したテトリミノを新しくインスタンス化して返す
 	newTetromino := Tetromino{
-		Color:    Tetrominos[randomIndex].Color,
-		Shape:    append([][]int{}, Tetrominos[randomIndex].Shape...), // Shapeを新しくコピー
-		Rotation: 0, // 初期回転状態
+			Color:    Tetrominos[randomIndex].Color,
+			Shape:    append([][]int{}, Tetrominos[randomIndex].Shape...), // Shapeを新しくコピー
+			Rotation: 0, // 初期回転状態
 	}
 
 	return &newTetromino
+}
+
+func (g *Game) GenerateUniqueTetrominos() (*Tetromino, *Tetromino, *Tetromino) {
+	// シャッフルアルゴリズムを使用して重複を防ぐ
+	indexes := rand.Perm(len(Tetrominos)) // 0からlen(Tetrominos)-1までのランダム順列を生成
+
+	// 3つのテトリミノを生成
+	tetromino1 := Tetromino{
+		Color:    Tetrominos[indexes[0]].Color,
+		Shape:    append([][]int{}, Tetrominos[indexes[0]].Shape...), // Shapeを新しくコピー
+		Rotation: 0,
+	}
+	tetromino2 := Tetromino{
+		Color:    Tetrominos[indexes[1]].Color,
+		Shape:    append([][]int{}, Tetrominos[indexes[1]].Shape...), // Shapeを新しくコピー
+		Rotation: 0,
+	}
+	tetromino3 := Tetromino{
+		Color:    Tetrominos[indexes[2]].Color,
+		Shape:    append([][]int{}, Tetrominos[indexes[2]].Shape...), // Shapeを新しくコピー
+		Rotation: 0,
+	}
+
+	return &tetromino1, &tetromino2, &tetromino3
 }
 
 // テトリミノの回転処理

@@ -16,20 +16,64 @@ import (
 const (
 	normalFontSize = 24
 	bigFontSize    = 48
-	x = 20
+	x              = 20
 )
-
 
 // ゲームの描画
 func (g *GameWrapper) Draw(screen *ebiten.Image) {
 	switch g.Game.State {
-		case "playing":
-			g.drawPlaying(screen)
-		case "showingScore":
-			g.drawScore(screen)
+	case "start":
+		g.drawStart(screen)
+	case "playing":
+		g.drawPlaying(screen)
+	case "showingScore":
+		g.drawScore(screen)
 	}
 }
 
+var InstructionText = []string{
+	"操作方法",    // 1行目
+	"移動: ←↓→", // 2行目
+	"回転: ↑",   // 3行目
+}
+
+// スコア画面の描画
+func (g *GameWrapper) drawStart(screen *ebiten.Image) {
+	// 背景を塗りつぶす
+	screen.Fill(color.Black)
+
+	// スコアを表示
+	TitleText := "顔テトリス"
+	op3 := &text.DrawOptions{}
+	op3.GeoM.Translate(x, 60)
+	op3.ColorScale.ScaleWithColor(color.White)
+	text.Draw(screen, TitleText, &text.GoTextFace{
+		Source: mplusFaceSource,
+		Size:   normalFontSize,
+	}, op3)
+
+	// リスタートの指示を表示
+	startText := "スペースキーを押してスタート"
+	op4 := &text.DrawOptions{}
+	op4.GeoM.Translate(x, 100)
+	op4.ColorScale.ScaleWithColor(color.White)
+	text.Draw(screen, startText, &text.GoTextFace{
+		Source: mplusFaceSource,
+		Size:   normalFontSize,
+	}, op4)
+
+	// ゲーム終了のメッセージ
+	op5 := &text.DrawOptions{}
+	op5.GeoM.Translate(x, 140)
+	op5.ColorScale.ScaleWithColor(color.White)
+	for _, line := range InstructionText {
+		op5.GeoM.Translate(0, float64(constants.BlockSize)) // 各行の縦位置をずらす
+		text.Draw(screen, line, &text.GoTextFace{
+			Source: mplusFaceSource,
+			Size:   normalFontSize,
+		}, op5)
+	}
+}
 
 // プレイ中の描画
 func (g *GameWrapper) drawPlaying(screen *ebiten.Image) {
@@ -65,7 +109,7 @@ func (g *GameWrapper) drawPlaying(screen *ebiten.Image) {
 	op2 := &text.DrawOptions{}
 	op2.GeoM.Translate(x, 40)
 	op2.ColorScale.ScaleWithColor(color.White)
-	text.Draw(screen, scoreText,&text.GoTextFace{
+	text.Draw(screen, scoreText, &text.GoTextFace{
 		Source: mplusFaceSource,
 		Size:   normalFontSize,
 	}, op2)
@@ -110,7 +154,7 @@ func (g *GameWrapper) DrawNextTetromino(screen *ebiten.Image) {
 	// 「Next」のラベルを描画
 	nextLabel := "Next:"
 	op := &text.DrawOptions{}
-	op.GeoM.Translate(constants.BoardWidth*constants.BlockSize+10, 120)
+	op.GeoM.Translate(constants.BoardWidth*constants.BlockSize+10, 128)
 	op.ColorScale.ScaleWithColor(color.White)
 	text.Draw(screen, nextLabel, &text.GoTextFace{
 		Source: mplusFaceSource,
@@ -118,16 +162,16 @@ func (g *GameWrapper) DrawNextTetromino(screen *ebiten.Image) {
 	}, op)
 
 	// 次のテトロミノの描画
-	if g.Game.Next != nil {
-		for y := 0; y < len(g.Game.Next.Shape); y++ {
-			for x := 0; x < len(g.Game.Next.Shape[y]); x++ {
-				if g.Game.Next.Shape[y][x] == 1 {
+	if g.Game.Next[0] != nil {
+		for y := 0; y < len(g.Game.Next[0].Shape); y++ {
+			for x := 0; x < len(g.Game.Next[0].Shape[y]); x++ {
+				if g.Game.Next[0].Shape[y][x] == 1 {
 					blockImage := ebiten.NewImage(constants.BlockSize, constants.BlockSize)
-					blockImage.Fill(g.Game.Next.Color) // 次のテトロミノの色
+					blockImage.Fill(g.Game.Next[0].Color) // 次のテトロミノの色
 					opts := &ebiten.DrawImageOptions{}
 					opts.GeoM.Translate(
 						float64(constants.BoardWidth*constants.BlockSize+10+(x*constants.BlockSize)),
-						float64(150+(y*constants.BlockSize)),
+						float64(160+(y*constants.BlockSize)),
 					)
 					screen.DrawImage(blockImage, opts)
 				}
@@ -136,34 +180,38 @@ func (g *GameWrapper) DrawNextTetromino(screen *ebiten.Image) {
 	}
 }
 
+// 次の次のテトロミノを描画
 func (g *GameWrapper) DrawAfterNextTetromino(screen *ebiten.Image) {
-	// 「Next」のラベルを描画
-	nextLabel := "After Next: "
+	// 「After Next」のラベルを描画
+	afterNextLabel := "After Next:"
 	op := &text.DrawOptions{}
-	op.GeoM.Translate(constants.BoardWidth*constants.BlockSize+10, 200)
+	op.GeoM.Translate(constants.BoardWidth*constants.BlockSize+10, 254) // ラベルの位置調整
 	op.ColorScale.ScaleWithColor(color.White)
-	text.Draw(screen, nextLabel , &text.GoTextFace{
+	text.Draw(screen, afterNextLabel, &text.GoTextFace{
 		Source: mplusFaceSource,
 		Size:   normalFontSize,
 	}, op)
 
-		// 次のテトロミノの描画
-		if g.Game.Next.Next != nil {
-			for y := 0; y < len(g.Game.Next.Next.Shape); y++ {
-				for x := 0; x < len(g.Game.Next.Next.Shape[y]); x++ {
-					if g.Game.Next.Next.Shape[y][x] == 1 {
+	// 1から4まで次のテトロミノを描画
+	for i := 1; i <= 4 && i <= len(g.Game.Next); i++ {
+		if g.Game.Next[i] != nil {
+			for y := 0; y < len(g.Game.Next[i].Shape); y++ {
+				for x := 0; x < len(g.Game.Next[i].Shape[y]); x++ {
+					if g.Game.Next[i].Shape[y][x] == 1 {
 						blockImage := ebiten.NewImage(constants.BlockSize, constants.BlockSize)
-						blockImage.Fill(g.Game.Next.Next.Color) // 次のテトロミノの色
+						blockImage.Fill(g.Game.Next[i].Color) // 次のテトロミノの色
 						opts := &ebiten.DrawImageOptions{}
 						opts.GeoM.Translate(
 							float64(constants.BoardWidth*constants.BlockSize+10+(x*constants.BlockSize)),
-							float64(230+(y*constants.BlockSize)),
+							float64(192+(i)*128+(y*constants.BlockSize)), // Y座標をiに基づいて調整
 						)
 						screen.DrawImage(blockImage, opts)
 					}
-				}
+				} 
 			}
 		}
+	}
+
 }
 
 // スコア画面の描画
@@ -172,33 +220,32 @@ func (g *GameWrapper) drawScore(screen *ebiten.Image) {
 	screen.Fill(color.Black)
 
 	// スコアを表示
-	scoreText := fmt.Sprintf("Final Score: %d", g.Game.Score)
+	scoreText := fmt.Sprintf("総スコア: %d", g.Game.Score)
 	op3 := &text.DrawOptions{}
 	op3.GeoM.Translate(x, 60)
 	op3.ColorScale.ScaleWithColor(color.White)
-	text.Draw(screen, scoreText,&text.GoTextFace{
+	text.Draw(screen, scoreText, &text.GoTextFace{
 		Source: mplusFaceSource,
 		Size:   normalFontSize,
 	}, op3)
 
 	// リスタートの指示を表示
-	restartText := "Press SPACE to Restart"
+	restartText := "スペースを押して再スタート"
 	op4 := &text.DrawOptions{}
 	op4.GeoM.Translate(x, 100)
 	op4.ColorScale.ScaleWithColor(color.White)
-	text.Draw(screen, restartText,&text.GoTextFace{
+	text.Draw(screen, restartText, &text.GoTextFace{
 		Source: mplusFaceSource,
 		Size:   normalFontSize,
 	}, op4)
 
 	// ゲーム終了のメッセージ
-	exitText := "Thank you for playing!"
+	exitText := "Nice, Face!"
 	op5 := &text.DrawOptions{}
 	op5.GeoM.Translate(x, 140)
 	op5.ColorScale.ScaleWithColor(color.White)
-	text.Draw(screen, exitText,&text.GoTextFace{
+	text.Draw(screen, exitText, &text.GoTextFace{
 		Source: mplusFaceSource,
 		Size:   normalFontSize,
 	}, op5)
 }
-

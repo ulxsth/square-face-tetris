@@ -12,12 +12,25 @@ import (
 func (g *GameWrapper) Update() error {
 
 	switch g.Game.State {
+	case "start":
+		g.updateStart()
 	case "playing":
 		g.updatePlaying()
 	case "showingScore":
 		g.updateShowingScore()
 	}
 	return nil
+}
+
+
+func (g *GameWrapper) updateStart() {
+	// スコア画面ではスペースキーを押すと終了
+	if ebiten.IsKeyPressed(ebiten.KeySpace) {
+		err := g.ResetGame() // ゲームを初期化
+		if err != nil {
+				log.Fatalf("Failed to initialize the game: %v", err)
+		}
+	}
 }
 
 
@@ -30,7 +43,7 @@ func (g *GameWrapper) updatePlaying() {
 	}
 
 	if g.Game.Current == nil {
-		g.Game.NewTetromino()
+		g.Game.ShiftTetrominoQueue()
 	}
 
 	// ユーザー入力でテトリミノを操作
@@ -109,7 +122,7 @@ func (g *GameWrapper) isTopRowFilled() bool {
 func (g *GameWrapper) updateShowingScore() {
 	// スコア画面ではスペースキーを押すと終了
 	if ebiten.IsKeyPressed(ebiten.KeySpace) {
-		err := g.Init() // ゲームを初期化
+		err := g.ResetGame() // ゲームを初期化
 		if err != nil {
 				log.Fatalf("Failed to initialize the game: %v", err)
 		}
