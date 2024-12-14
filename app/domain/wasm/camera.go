@@ -45,6 +45,7 @@ func InitCamera() {
 	}))
 }
 
+// FIXME: FPS のボトルネックになっている
 func UpdateCamera() {
 	// video の映像を canvas に移す
 	if ctx.Truthy() {
