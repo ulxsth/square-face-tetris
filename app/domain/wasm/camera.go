@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"square-face-tetris/app/constants"
+	"square-face-tetris/app/domain"
 	"syscall/js"
 
 	"github.com/esimov/pigo/wasm/detector"
@@ -34,6 +35,8 @@ var (
 	aspectRatio   float64
 	previewWidth  float64
 	previewHeight float64
+
+	face domain.Face
 )
 
 func InitCamera() {
@@ -121,6 +124,12 @@ func UpdateCamera() {
 		// 顔のランドマークを取得
 		landmarks := det.DetectLandmarkPoints(leftEye, rightEye)
 		DrawLandmarkPoints(landmarks)
+
+		// 初めて顔を認識したときに face を初期化
+		if face.Snapshot.Landmarks == nil {
+			face = domain.NewFace(landmarks)
+			fmt.Printf("Face initialized: %+v\n", face)
+		}
 	}
 
 	// canvas 経由で画面を base64 形式で取得
@@ -164,14 +173,14 @@ func DrawCameraPrev(screen *ebiten.Image) {
 }
 
 func DrawLandmarkPoints(landmarks [][]int) {
-		for i := 0; i < len(landmarks); i++ {
-			if len(landmarks[i]) >= 2 {
-				ctx.Set("fillStyle", "red")
-				ctx.Call("beginPath")
-				ctx.Call("rect", landmarks[i][0]-2, landmarks[i][1]-2, 4, 4)
-				ctx.Call("fill")
-			}
+	for i := 0; i < len(landmarks); i++ {
+		if len(landmarks[i]) >= 2 {
+			ctx.Set("fillStyle", "red")
+			ctx.Call("beginPath")
+			ctx.Call("rect", landmarks[i][0]-2, landmarks[i][1]-2, 4, 4)
+			ctx.Call("fill")
 		}
+	}
 
 }
 
