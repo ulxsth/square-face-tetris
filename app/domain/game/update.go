@@ -5,7 +5,6 @@ import (
 	"square-face-tetris/app/domain/wasm"
 	"time"
 
-	// "github.com/esimov/pigo/wasm/detector"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -31,7 +30,7 @@ func (g *GameWrapper) updatePlaying() {
 	}
 
 	if g.Game.Current == nil {
-		g.Game.NewTetromino()
+		g.Game.ShiftTetrominoQueue()
 	}
 
 	// ユーザー入力でテトリミノを操作
@@ -110,7 +109,7 @@ func (g *GameWrapper) isTopRowFilled() bool {
 func (g *GameWrapper) updateShowingScore() {
 	// スコア画面ではスペースキーを押すと終了
 	if ebiten.IsKeyPressed(ebiten.KeySpace) {
-		err := g.Init() // ゲームを初期化
+		err := g.ResetGame() // ゲームを初期化
 		if err != nil {
 				log.Fatalf("Failed to initialize the game: %v", err)
 		}

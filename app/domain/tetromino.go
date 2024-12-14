@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"square-face-tetris/app/constants"
 	"time"
-	// "github.com/esimov/pigo/wasm/detector"
 )
 
 // テトリミノの定義
@@ -73,7 +72,7 @@ var Tetrominos = []Tetromino{
 }
 
 // テトリミノを新しく取得
-func (g *Game) NewTetromino() {
+func (g *Game) ShiftTetrominoQueue() {
 	// generateRandomTetromino() で新しいテトリミノをランダムに生成
 	g.Current = g.Next
 	// 次のテトリミノをランダムに生成
