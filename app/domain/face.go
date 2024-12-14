@@ -143,7 +143,21 @@ func (f *Face) IsSurprised(landmarks [][]int) bool {
 	return mouthHeight > mouthWidth
 }
 
+// 🤨
+func (f *Face) IsSus(landmarks [][]int) bool {
+	border := 3 // TODO: しきい値を定数化
 
+	leftEyebrowTop := landmarks[constants.L_EYEBROW_TOP]
+	rightEyebrowTop := landmarks[constants.R_EYEBROW_TOP]
+	leftEyebrowInner := landmarks[constants.L_EYEBROW_INNER]
+	rightEyebrowInner := landmarks[constants.R_EYEBROW_INNER]
+
+	// どちらかの inner がどちらかの top より上にある場合にTrueを返す
+	isLeftHigher := (rightEyebrowTop[1] - leftEyebrowInner[1]) > border
+	isRightHigher := (leftEyebrowTop[1] - rightEyebrowInner[1]) > border
+
+	return isLeftHigher || isRightHigher
+}
 
 // 2点間の距離を求める。
 // ピタゴラスの定理より z = sqrt(x^2 + y^2)
