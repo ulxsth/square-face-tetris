@@ -3,25 +3,34 @@ package main
 import (
 	"log"
 	"time"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"square-face-tetris/app/constants"
-	"square-face-tetris/app/types"
+	"square-face-tetris/app/domain"
+	"square-face-tetris/app/domain/game"
+	"square-face-tetris/app/domain/wasm"
 )
 
 func main() {
 	// ゲームインスタンスの生成
-	game := &types.Game{
-		DropInterval: 2 * time.Second, // 落下間隔を2秒に設定
-		KeyState:     make(map[ebiten.Key]bool), // キーの押下状態を管理
+	gameWrapper := &game.GameWrapper{
+		Game: domain.Game{
+			DropInterval: 2 * time.Second,           // ブロックの落下間隔を2秒に設定
+			KeyState:     make(map[ebiten.Key]bool), // キー入力の状態を管理
+		},
 	}
-	err := game.Init()
+	// ゲームの初期化
+	err := gameWrapper.Init()
 	if err != nil {
-		log.Fatalf("Failed to initialize the game: %v", err)
+		log.Fatalf("ゲームの初期化に失敗しました: %v", err)
 	}
+
+	// Initialize the camera
+	wasm.InitCamera()
 
 	ebiten.SetWindowSize(constants.ScreenWidth, constants.ScreenHeight)
 	ebiten.SetWindowTitle("Tetris")
-	if err := ebiten.RunGame(game); err != nil {
+	if err := ebiten.RunGame(gameWrapper); err != nil {
 		log.Fatal(err)
 	}
 }
