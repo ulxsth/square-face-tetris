@@ -17,4 +17,22 @@ const (
 
 	// カメラプレビューのFPS
 	CAMERA_PREVIEW_FPS = 5
+
+	// landmark の各点（0-14）
+	// landmark は15つの座標から構成される配列
+	R_EYEBROW_OUTER = 0
+	L_EYEBROW_OUTER = 1
+	R_EYEBROW_TOP   = 2
+	L_EYEBROW_TOP   = 3
+	R_EYEBROW_INNER = 4
+	L_EYEBROW_INNER = 5
+	R_EYE_INNER     = 6
+	L_EYE_INNER     = 7
+	R_EYE_OUTER     = 8
+	L_EYE_OUTER     = 9
+	NOSE            = 10
+	MOUSE_RIGHT     = 11
+	MOUSE_BOTTOM    = 12
+	MOUSE_TOP       = 13
+	MOUSE_LEFT      = 14
 )

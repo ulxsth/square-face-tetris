@@ -33,7 +33,7 @@ func (g *GameWrapper) Init() error{
 
 	g.Game.Board.Init() // Boardの初期化
 	g.Game.StartTime = time.Now()           // ゲーム開始時刻を記録
-	g.Game.TimeLimit = 10 * time.Second      // タイムリミットを3分に設定
+	g.Game.TimeLimit = 10 * time.Minute      // タイムリミットを3分に設定
 	// g.Game.TimeLimit = 3 * time.Minute      // タイムリミットを3分に設定
 	g.Game.State = "playing"               // ゲームオーバー状態を初期化
 	g.Game.KeyState = make(map[ebiten.Key]bool) // キー状態をリセット
@@ -41,7 +41,7 @@ func (g *GameWrapper) Init() error{
 	g.Game.Current = g.Game.GenerateRandomTetromino()	// 次のテトリミノをランダムに生成
 	g.Game.Next = g.Game.GenerateRandomTetromino() 	// 次のテトリミノをランダムに生成
 	g.Game.Next.Next = g.Game.GenerateRandomTetromino()	// 次の次のテトリミノをランダムに生成
-	
+
 	g.Game.NewTetromino()                   // 最初のテトリミノを生成
 	g.Game.Score = 0
 	return nil

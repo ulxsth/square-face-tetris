@@ -113,16 +113,23 @@ func UpdateCamera() {
 	if len(res) > 0 {
 		fmt.Printf("Face detected: [%v,%v], scale: %v, reliability: %v\n", res[0][0], res[0][1], res[0][2], res[0][3])
 		drawFaceRect(res)
-		
+
 		// 両目の位置を取得
 		leftEye := det.DetectLeftPupil(res[0])
 		rightEye := det.DetectRightPupil(res[0])
 
 		// 顔のランドマークを取得
 		landmarks := det.DetectLandmarkPoints(leftEye, rightEye)
-		fmt.Printf("Landmarks: %v\n", landmarks)
-	}
 
+		for i := 0; i < 7; i++ {
+			if len(landmarks[i]) >= 2 {
+				ctx.Set("fillStyle", "red")
+				ctx.Call("beginPath")
+				ctx.Call("rect", landmarks[i][0]-2, landmarks[i][1]-2, 4, 4)
+				ctx.Call("fill")
+			}
+		}
+	}
 
 	// canvas 経由で画面を base64 形式で取得
 	b64 := canvas.Call("toDataURL", "image/png").String()
