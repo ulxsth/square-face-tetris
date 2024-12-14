@@ -3,12 +3,10 @@ package domain
 import (
 	"image/color"
 
-	"square-face-tetris/app/constants"
 	"math/rand"
+	"square-face-tetris/app/constants"
 	"time"
-
 	// "github.com/esimov/pigo/wasm/detector"
-
 )
 
 // テトリミノの定義
@@ -17,6 +15,7 @@ type Tetromino struct {
 	Color     color.Color // テトリミノの色
 	Shape     [][]int     // テトリミノの形状（回転可能）
 	Rotation  int         // 回転状態（0, 90, 180, 270度）
+	Next      *Tetromino
 }
 
 // 各テトリミノの形状を定義
@@ -75,11 +74,33 @@ var Tetrominos = []Tetromino{
 
 // テトリミノを新しく取得
 func (g *Game) NewTetromino() {
-	randomIndex := rand.Intn(len(Tetrominos)) // テトロミノのリストからランダムに選択
-	g.Current = &Tetrominos[randomIndex] // 現時点では I 型のテトリミノを設定
+	// generateRandomTetromino() で新しいテトリミノをランダムに生成
+	g.Current = g.Next
+	// 次のテトリミノをランダムに生成
+	g.Next = g.Next.Next
+	// 次の次のテトリミノをランダムに生成
+	g.Next.Next = g.GenerateRandomTetromino()
+
+	// 現在のテトリミノの位置を初期化
 	g.Current.X = 3
 	g.Current.Y = 0
-	g.LastDrop = time.Now() // 新しいテトリミノの生成時にタイマーをリセット
+
+	// ドロップのタイマーをリセット
+	g.LastDrop = time.Now()
+}
+
+// ランダムにテトリミノを生成するヘルパー関数
+func (g *Game) GenerateRandomTetromino() *Tetromino {
+	randomIndex := rand.Intn(len(Tetrominos)) // テトリミノのリストからランダムに選択
+
+	// 選択したテトリミノを新しくインスタンス化して返す
+	newTetromino := Tetromino{
+		Color:    Tetrominos[randomIndex].Color,
+		Shape:    append([][]int{}, Tetrominos[randomIndex].Shape...), // Shapeを新しくコピー
+		Rotation: 0, // 初期回転状態
+	}
+
+	return &newTetromino
 }
 
 // テトリミノの回転処理
@@ -229,7 +250,6 @@ func (g *Game) IsValidPosition(tetromino *Tetromino, offsetX, offsetY int) bool 
 	return true
 }
 
-// ボードにテトリミノを固定
 // ボードにテトリミノを固定
 func (g *Game) LockTetromino() {
 	for y := 0; y < len(g.Current.Shape); y++ {
