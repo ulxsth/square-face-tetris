@@ -85,7 +85,13 @@ func (g *Game) ShiftTetrominoQueue() {
 	fmt.Printf("emotionIndexes: %v\n", emotionIndexes)
 	drawedIndex := g.drawingEmotionFromFlags(emotionIndexes)
 	g.DrawedEmote = wasm.Face.GetEmotionByIndex(drawedIndex)
-	g.Next[0] = g.Next[drawedIndex]
+	fmt.Printf("=======")
+	fmt.Printf("emote: %v\n", g.DrawedEmote)
+	fmt.Printf("=======")
+	if(g.DrawedEmote == "UNKNOWN"){
+		drawedIndex = rand.Intn(4)
+	}
+	g.Next[0] = g.Next[drawedIndex+1]
 
 	// 次の次のテトリミノを生成
 	g.Next[1], g.Next[2], g.Next[3], g.Next[4] = g.GenerateUniqueTetrominos()
