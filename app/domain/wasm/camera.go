@@ -37,6 +37,7 @@ var (
 	previewHeight float64
 
 	Face domain.Face
+	IsFaceInited bool
 )
 
 func InitCamera() {
@@ -95,11 +96,6 @@ func UpdateCamera() {
 	}
 
 	ctx.Call("drawImage", video, 0, 0, cameraWidth, cameraHeight)
-
-	if(Face.Snapshot.Landmarks != nil) {
-		ResetFaceSnapshot()
-	}
-
 	// canvas 経由で画面を base64 形式で取得
 	b64 := canvas.Call("toDataURL", "image/png").String()
 
@@ -115,12 +111,7 @@ func UpdateCamera() {
 
 	// ebiten.Image にして保持
 	CanvasImage = ebiten.NewImageFromImage(img)
-}
 
-func ResetFaceSnapshot() {
-	if(!ctx.Truthy()) {
-		return
-	}
 	rgba := ctx.Call("getImageData", 0, 0, cameraWidth, cameraHeight, map[string]interface{}{
 		"willReadFrequently": true,
 	}).Get("data")
@@ -150,14 +141,14 @@ func ResetFaceSnapshot() {
 		landmarks := det.DetectLandmarkPoints(leftEye, rightEye)
 		DrawLandmarkPoints(landmarks)
 
-		// 初めて顔を認識したときに face を初期化
-		if Face.Snapshot.Landmarks == nil {
+		// 顔の情報が未設定の場合、新しい顔を作成
+		if !IsFaceInited {
 			Face = domain.NewFace(landmarks)
-			fmt.Printf("Face initialized: %+v\n", Face)
+			IsFaceInited = true
 		}
 
 		// 顔の情報を更新
-		choices := []int {
+		choices := []int{
 			constants.SMILE,
 			constants.ANGRY,
 			constants.SURPRISED,

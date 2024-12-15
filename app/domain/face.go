@@ -185,6 +185,52 @@ func (f *Face) IsSus(landmarks [][]int) bool {
 	return isLeftHigher || isRightHigher
 }
 
+
+func (f *Face)GetEmotionIndexes() []int {
+    // 結果を格納するスライス
+    var emotionIndexes []int
+
+    // EmoteFlags の長さチェック
+    if f.EmoteFlags == nil || len(f.EmoteFlags) <= constants.SUS {
+        fmt.Println("EmoteFlags is nil or too short")
+        return []int{}
+    }
+
+    // 各感情フラグに基づいてインデックスを追加
+    if constants.SMILE < len(f.EmoteFlags) && f.EmoteFlags[constants.SMILE] {
+        emotionIndexes = append(emotionIndexes, 0) // SMILE の場合
+    }
+    if constants.ANGRY < len(f.EmoteFlags) && f.EmoteFlags[constants.ANGRY] {
+        emotionIndexes = append(emotionIndexes, 1) // ANGRY の場合
+    }
+    if constants.SURPRISED < len(f.EmoteFlags) && f.EmoteFlags[constants.SURPRISED] {
+        emotionIndexes = append(emotionIndexes, 2) // SURPRISED の場合
+    }
+    if constants.SUS < len(f.EmoteFlags) && f.EmoteFlags[constants.SUS] {
+        emotionIndexes = append(emotionIndexes, 3) // SUS の場合
+    }
+
+    fmt.Println("EmotionIndexes:", emotionIndexes)
+    // 結果としてインデックスの配列を返す
+    return emotionIndexes
+}
+
+func (f *Face) GetEmotionByIndex(index int) string {
+	// 感情に対応する文字列を返す
+	switch index {
+	case 0:
+			return "SMILE"
+	case 1:
+			return "ANGRY"
+	case 2:
+			return "SURPRISED"
+	case 3:
+			return "SUS"
+	default:
+			return "UNKNOWN"
+	}
+}
+
 // 2点間の距離を求める。
 // ピタゴラスの定理より z = sqrt(x^2 + y^2)
 func calcDistance(p1, p2 []int) float64 {

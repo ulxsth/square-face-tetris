@@ -1,15 +1,17 @@
-package domain
+package game
 
 import (
+	"square-face-tetris/app/domain"
 	"time"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 // ゲームの状態
 type Game struct {
-	Board        Board               // 10x20 のボード
+	Board        domain.Board               // 10x20 のボード
 	Current      *Tetromino          // 現在のテトリミノ
-	Next         []*Tetromino          // 次のテトリミノ
+	Next         []*Tetromino        // 次のテトリミノ
 	LastDrop     time.Time           // 最後にテトリミノが落下した時刻
 	DropInterval time.Duration       // 落下間隔
 	KeyState     map[ebiten.Key]bool // キーの押下状態
@@ -18,6 +20,7 @@ type Game struct {
 	TimeLimit    time.Duration       // タイムリミット
 	State        string              // ゲームの状態
 	Score        int                 // スコア
+	DrawedEmote  string
 }
 
 // キーが離された場合に状態をリセット

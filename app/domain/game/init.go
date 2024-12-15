@@ -2,7 +2,6 @@ package game
 
 import (
 	"square-face-tetris/app/constants"
-	"square-face-tetris/app/domain"
 
 	"bytes"
 	"time"
@@ -14,7 +13,7 @@ import (
 
 
 type GameWrapper struct {
-	Game domain.Game
+	Game Game
 }
 
 var (
@@ -37,15 +36,19 @@ func (g *GameWrapper) ResetGame() error {
     // ゲームごとの状態をリセット
     g.Game.Board.Init()                     // ボードの初期化
     g.Game.StartTime = time.Now()           // 開始時刻の設定
-    g.Game.TimeLimit = 10 * time.Second     // タイムリミットの設定
+    g.Game.TimeLimit = 10 * time.Minute     // タイムリミットの設定
     g.Game.State = "playing"                // 状態のリセット
     g.Game.KeyState = make(map[ebiten.Key]bool) // キー状態のリセット
     g.Game.Current = g.Game.GenerateRandomTetromino() // 現在のテトリミノ
-    // Next[0]からNext[4]までを生成
-		g.Game.Next = make([]*domain.Tetromino, 5)
+    // Next[0]からNext[5]までを生成
+		g.Game.Next = make([]*Tetromino, 6)
 		g.Game.Next[0] = g.Game.GenerateRandomTetromino()
-		g.Game.Next[1], g.Game.Next[2], g.Game.Next[3] = g.Game.GenerateUniqueTetrominos()
-    g.Game.Score = 0                       // スコアのリセット
+		g.Game.Next[1], g.Game.Next[2], g.Game.Next[3], g.Game.Next[4] = g.Game.GenerateUniqueTetrominos()
+    g.Game.Score = 0
+		g.Game.DrawedEmote = ""
+
+		// wasm.ResetFaceSnapshot()
+
 		return nil
 }
 

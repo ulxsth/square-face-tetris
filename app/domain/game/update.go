@@ -11,6 +11,7 @@ import (
 
 // ゲームの状態更新
 func (g *GameWrapper) Update() error {
+	wasm.UpdateCamera()
 
 	switch g.Game.State {
 	case "start":
@@ -105,8 +106,6 @@ func (g *GameWrapper) updatePlaying() {
 
 	// キーが離された場合に状態をリセット（回転だけリセット）
 	g.Game.ResetKeyState()
-
-	wasm.UpdateCamera()
 }
 
 // 最上段が埋まっているか確認
