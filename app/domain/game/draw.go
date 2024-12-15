@@ -39,6 +39,13 @@ var InstructionText = []string{
 	"回転: ↑",   // 3行目
 }
 
+var EmoText = []string{
+	"ANGRY",
+	"SURPRISED",
+	"SUS",
+	"UNKNOWN",
+}
+
 // スコア画面の描画
 func (g *GameWrapper) drawStart(screen *ebiten.Image) {
 	// 背景を塗りつぶす
@@ -88,6 +95,17 @@ func (g *GameWrapper) drawPlaying(screen *ebiten.Image) {
 		remainingTime = 0
 	}
 
+	op7 := &text.DrawOptions{}
+	op7.GeoM.Translate(constants.BoardWidth*constants.BlockSize+ constants.BlockSize*5, 140)
+	op7.ColorScale.ScaleWithColor(color.White)
+	for _, line := range EmoText {
+		op7.GeoM.Translate(0, float64(constants.BlockSize)*3) // 各行の縦位置をずらす
+		text.Draw(screen, line, &text.GoTextFace{
+			Source: mplusFaceSource,
+			Size:   normalFontSize,
+		}, op7)
+	}
+
 	// 秒数に変換
 	totalSeconds := remainingTime.Seconds()
 
@@ -116,16 +134,6 @@ func (g *GameWrapper) drawPlaying(screen *ebiten.Image) {
 		Size:   normalFontSize,
 	}, op2)
 
-		// スコアの表示
-
-		emotionText := fmt.Sprintf("%s", g.Game.DrawedEmote)
-		op6 := &text.DrawOptions{}
-		op6.GeoM.Translate(x, 40)
-		op6.ColorScale.ScaleWithColor(color.White)
-		text.Draw(screen, emotionText, &text.GoTextFace{
-			Source: mplusFaceSource,
-			Size:   normalFontSize,
-		}, op2)
 
 	// ボードの描画（固定されたブロック）
 	for y := 0; y < constants.BoardHeight; y++ {
@@ -164,14 +172,15 @@ func (g *GameWrapper) drawPlaying(screen *ebiten.Image) {
 // 次のテトロミノの描画
 func (g *GameWrapper) DrawNextTetromino(screen *ebiten.Image) {
 	// 「Next」のラベルを描画
-	nextLabel := "Next:"
-	op := &text.DrawOptions{}
-	op.GeoM.Translate(constants.BoardWidth*constants.BlockSize + constants.BlockSize, 32)
-	op.ColorScale.ScaleWithColor(color.White)
-	text.Draw(screen, nextLabel, &text.GoTextFace{
+	emotionText := fmt.Sprintf("%s", g.Game.DrawedEmote)
+	op6 := &text.DrawOptions{}
+	op6.GeoM.Translate(constants.BoardWidth*constants.BlockSize + constants.BlockSize, 32)
+	op6.ColorScale.ScaleWithColor(color.White)
+	text.Draw(screen, emotionText, &text.GoTextFace{
 		Source: mplusFaceSource,
 		Size:   normalFontSize,
-	}, op)
+	}, op6)
+
 
 	// 次のテトロミノの描画
 	if g.Game.Next[0] != nil {
@@ -194,15 +203,6 @@ func (g *GameWrapper) DrawNextTetromino(screen *ebiten.Image) {
 
 // 次の次のテトロミノを描画
 func (g *GameWrapper) DrawAfterNextTetromino(screen *ebiten.Image) {
-	// 「After Next」のラベルを描画
-	afterNextLabel := "After Next:"
-	op := &text.DrawOptions{}
-	op.GeoM.Translate(constants.BoardWidth*constants.BlockSize+ constants.BlockSize, 160) // ラベルの位置調整
-	op.ColorScale.ScaleWithColor(color.White)
-	text.Draw(screen, afterNextLabel, &text.GoTextFace{
-		Source: mplusFaceSource,
-		Size:   normalFontSize,
-	}, op)
 
 	// 1から4まで次のテトロミノを描画
 	for i := 1; i <= 5 && i <= len(g.Game.Next); i++ {
