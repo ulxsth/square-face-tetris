@@ -169,7 +169,6 @@ func (f *Face) IsSus(landmarks [][]int) bool {
 	faceInclination := calcFaceInclination(landmarks)
 	fmt.Println(faceInclination)
 	if(math.Abs(faceInclination) > faceInclinationBorder) {
-		fmt.Println("かたむきすぎ！")
 		return false
 	}
 

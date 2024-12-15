@@ -103,7 +103,6 @@ func UpdateCamera() {
 	rgba := ctx.Call("getImageData", 0, 0, cameraWidth, cameraHeight, map[string]interface{}{
 		"willReadFrequently": true,
 	}).Get("data")
-	fmt.Println(rgba)
 
 	// 画像を分析
 	var data = make([]byte, cameraWidth*cameraHeight*4)
@@ -121,7 +120,6 @@ func UpdateCamera() {
 		// q: 顔であることの信頼度
 		res := det.DetectFaces(pixels, cameraHeight, cameraWidth)
 		if len(res) > 0 {
-			fmt.Printf("Face detected: [%v,%v], scale: %v, reliability: %v\n", res[0][0], res[0][1], res[0][2], res[0][3])
 			DrawFaceRect(res)
 
 			// 両目の位置を取得
@@ -146,8 +144,14 @@ func UpdateCamera() {
 				constants.SUS,
 			}
 			Face.Update(landmarks, choices)
+
+			// 鼻の位置をチェック
+			CheckNosePosition(landmarks, 125, 50)
 		}
 	}
+
+	// 画面中央に赤い点を描画
+	DrawCenterPoint()
 
 	// canvas 経由で画面を base64 形式で取得
 	b64 := canvas.Call("toDataURL", "image/png").String()
@@ -222,4 +226,43 @@ func isAllZero(arr []int) bool {
 		}
 	}
 	return true
+}
+
+func CheckNosePosition(landmarks [][]int, horizontalThreshold, verticalThreshold int) {
+	if len(landmarks) < 1 || len(Face.Snapshot.Landmarks) < 1 {
+		return
+	}
+
+	// 仮に鼻の位置が landmarks の最初の要素だとする
+	nose := landmarks[0]
+	noseX, noseY := nose[0], nose[1]
+
+	// 基準位置を Face.Snapshot.Landmarks の鼻の位置に変更
+	baseNose := Face.Snapshot.Landmarks[0]
+	baseNoseX, baseNoseY := baseNose[0], baseNose[1]
+
+	// 鼻の位置と基準位置を比較
+	if math.Abs(float64(noseX-baseNoseX)) > float64(horizontalThreshold) {
+		if noseX < baseNoseX {
+			fmt.Println("Nose is to the left")
+		} else {
+			fmt.Println("Nose is to the right")
+		}
+	}
+
+	if math.Abs(float64(noseY-baseNoseY)) > float64(verticalThreshold) {
+		if noseY < baseNoseY {
+			fmt.Println("Nose is above the base position")
+		} else {
+			fmt.Println("Nose is below the base position")
+		}
+	}
+}
+
+func DrawCenterPoint() {
+	centerX, centerY := cameraWidth/2, cameraHeight/2
+	ctx.Set("fillStyle", "red")
+	ctx.Call("beginPath")
+	ctx.Call("arc", centerX, centerY, 5, 0, 2*math.Pi)
+	ctx.Call("fill")
 }
