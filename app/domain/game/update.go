@@ -49,18 +49,18 @@ func (g *GameWrapper) updatePlaying() {
 	}
 
 	// ユーザー入力でテトリミノを操作
-	if inpututil.IsKeyJustPressed(ebiten.KeyLeft) && g.Game.IsValidPosition(g.Game.Current, -1, 0) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyLeft) && g.Game.IsValidPosition(g.Game.Current, -1, 0) || wasm.MoveLeft {
 		g.Game.Current.X -= 1
 	}
-	if inpututil.IsKeyJustPressed(ebiten.KeyRight) && g.Game.IsValidPosition(g.Game.Current, 1, 0) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyRight) && g.Game.IsValidPosition(g.Game.Current, 1, 0) || wasm.MoveRight {
 		g.Game.Current.X += 1
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyDown) && g.Game.IsValidPosition(g.Game.Current, 0, 1) {
+	if ebiten.IsKeyPressed(ebiten.KeyDown) && g.Game.IsValidPosition(g.Game.Current, 0, 1) || wasm.MoveDown {
 		g.Game.Current.Y += 1
 	}
 
 	// 回転用ボタンの処理（1回の入力で1回だけ回転）
-	if ebiten.IsKeyPressed(ebiten.KeyUp) && !g.Game.KeyState[ebiten.KeyUp] {
+	if ebiten.IsKeyPressed(ebiten.KeyUp) && !g.Game.KeyState[ebiten.KeyUp] || wasm.MoveUp {
 		// 回転処理を試みる
 		oldX, oldY := g.Game.Current.X, g.Game.Current.Y
 		g.Game.RotateTetromino()

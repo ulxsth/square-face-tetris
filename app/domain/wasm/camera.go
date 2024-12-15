@@ -41,6 +41,11 @@ var (
 
 	lastEmotionAnalysisTime time.Time
 	emotionAnalysisInterval = time.Second / constants.EMOTION_ANALYSIS_FPS
+
+	MoveLeft  bool
+	MoveRight bool
+	MoveUp    bool
+	MoveDown  bool
 )
 
 func InitCamera() {
@@ -244,18 +249,54 @@ func CheckNosePosition(landmarks [][]int, horizontalThreshold, verticalThreshold
 	// 鼻の位置と基準位置を比較
 	if math.Abs(float64(noseX-baseNoseX)) > float64(horizontalThreshold) {
 		if noseX < baseNoseX {
-			fmt.Println("Nose is to the left")
+			fmt.Println("左")
+			MoveLeft = true
 		} else {
-			fmt.Println("Nose is to the right")
+			fmt.Println("右")
+			MoveRight = true
 		}
+	} else {
+		MoveLeft = false
+		MoveRight = false
 	}
 
 	if math.Abs(float64(noseY-baseNoseY)) > float64(verticalThreshold) {
 		if noseY < baseNoseY {
-			fmt.Println("Nose is above the base position")
+			fmt.Println("上")
+			MoveUp = true
 		} else {
-			fmt.Println("Nose is below the base position")
+			fmt.Println("下")
+			MoveDown = true
 		}
+	} else {
+		MoveUp = false
+		MoveDown = false
+	}
+}
+
+func createKeyboardEvent(eventType, key string) js.Value {
+	event := js.Global().Get("KeyboardEvent").New(eventType, map[string]interface{}{
+		"key": key,
+		"code": key,
+		"keyCode": getKeyCode(key),
+		"which": getKeyCode(key),
+		"bubbles": true,
+	})
+	return event
+}
+
+func getKeyCode(key string) int {
+	switch key {
+	case "ArrowLeft":
+		return 37
+	case "ArrowUp":
+		return 38
+	case "ArrowRight":
+		return 39
+	case "ArrowDown":
+		return 40
+	default:
+		return 0
 	}
 }
 
