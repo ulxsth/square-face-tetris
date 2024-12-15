@@ -1,10 +1,12 @@
-package domain
+package game
 
 import (
+	"fmt"
 	"image/color"
 
 	"math/rand"
 	"square-face-tetris/app/constants"
+	"square-face-tetris/app/domain/wasm"
 	"time"
 )
 
@@ -77,11 +79,12 @@ func (g *Game) ShiftTetrominoQueue() {
 	g.Current = g.Next[0]
 
 	// Trueの感情を取得
-	emotionIndexes := g.Face.GetEmotionIndexes()
+	emotionIndexes := wasm.Face.GetEmotionIndexes()
 
   // Trueの感情から抽選
+	fmt.Printf("emotionIndexes: %v\n", emotionIndexes)
 	drawedIndex := g.drawingEmotionFromFlags(emotionIndexes)
-	g.DrawedEmote = g.Face.GetEmotionByIndex(drawedIndex)
+	g.DrawedEmote = wasm.Face.GetEmotionByIndex(drawedIndex)
 	g.Next[0] = g.Next[drawedIndex]
 
 	// 次の次のテトリミノを生成
@@ -144,45 +147,6 @@ func (g *Game) GenerateRandomTetromino() *Tetromino {
 
 	return &newTetromino
 }
-
-func (f *Face) GetEmotionIndexes() []int {
-	// 結果を格納するスライス
-	var emotionIndexes []int
-
-	// 各感情フラグに基づいてインデックスを追加
-	if f.EmoteFlags[constants.SMILE] {
-		emotionIndexes = append(emotionIndexes, 0) // SMILE の場合
-	}
-	if f.EmoteFlags[constants.ANGRY] {
-		emotionIndexes = append(emotionIndexes, 1) // ANGRY の場合
-	}
-	if f.EmoteFlags[constants.SURPRISED] {
-		emotionIndexes = append(emotionIndexes, 2) // SURPRISED の場合
-	}
-	if f.EmoteFlags[constants.SUS] {
-		emotionIndexes = append(emotionIndexes, 3) // SUS の場合
-	}
-
-	// 結果としてインデックスの配列を返す
-	return emotionIndexes
-}
-
-func (f *Face) GetEmotionByIndex(index int) string {
-	// 感情に対応する文字列を返す
-	switch index {
-	case 0:
-			return "SMILE"
-	case 1:
-			return "ANGRY"
-	case 2:
-			return "SURPRISED"
-	case 3:
-			return "SUS"
-	default:
-			return "UNKNOWN"
-	}
-}
-
 
 func (g *Game) GenerateUniqueTetrominos() (*Tetromino, *Tetromino, *Tetromino, *Tetromino) {
 	// シャッフルアルゴリズムを使用して重複を防ぐ
@@ -285,7 +249,7 @@ func (g *Game) IsOverlapping() bool {
 				boardY := current.Y + y
 
 				// ボード上に位置している場合のみ重なりを確認
-				if boardY >= 0 && boardY < constants.BoardHeight && 
+				if boardY >= 0 && boardY < constants.BoardHeight &&
 				   boardX >= 0 && boardX < constants.BoardWidth {
 					if g.Board[boardY][boardX] != 0 {
 						return true // 他のブロックと重なっている

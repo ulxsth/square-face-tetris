@@ -1,14 +1,15 @@
-package domain
+package game
 
 import (
+	"square-face-tetris/app/domain"
 	"time"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 // ゲームの状態
 type Game struct {
-	Board        Board               // 10x20 のボード
-	Face				 Face                // 顔情報
+	Board        domain.Board               // 10x20 のボード
 	Current      *Tetromino          // 現在のテトリミノ
 	Next         []*Tetromino        // 次のテトリミノ
 	LastDrop     time.Time           // 最後にテトリミノが落下した時刻

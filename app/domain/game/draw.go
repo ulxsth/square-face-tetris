@@ -117,7 +117,7 @@ func (g *GameWrapper) drawPlaying(screen *ebiten.Image) {
 	}, op2)
 
 		// スコアの表示
-
+		
 		emotionText := fmt.Sprintf("%s", g.Game.DrawedEmote)
 		op6 := &text.DrawOptions{}
 		op6.GeoM.Translate(x, 40)
