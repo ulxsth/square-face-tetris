@@ -96,6 +96,31 @@ func UpdateCamera() {
 
 	ctx.Call("drawImage", video, 0, 0, cameraWidth, cameraHeight)
 
+	if(Face.Snapshot.Landmarks != nil) {
+		ResetFaceSnapshot()
+	}
+
+	// canvas 経由で画面を base64 形式で取得
+	b64 := canvas.Call("toDataURL", "image/png").String()
+
+	// image.Image にデコード
+	dec, err := base64.StdEncoding.DecodeString(b64[22:])
+	if err != nil {
+		log.Fatal(err)
+	}
+	img, _, err := image.Decode(bytes.NewReader(dec))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// ebiten.Image にして保持
+	CanvasImage = ebiten.NewImageFromImage(img)
+}
+
+func ResetFaceSnapshot() {
+	if(!ctx.Truthy()) {
+		return
+	}
 	rgba := ctx.Call("getImageData", 0, 0, cameraWidth, cameraHeight, map[string]interface{}{
 		"willReadFrequently": true,
 	}).Get("data")
@@ -140,22 +165,6 @@ func UpdateCamera() {
 		}
 		Face.Update(landmarks, choices)
 	}
-
-	// canvas 経由で画面を base64 形式で取得
-	b64 := canvas.Call("toDataURL", "image/png").String()
-
-	// image.Image にデコード
-	dec, err := base64.StdEncoding.DecodeString(b64[22:])
-	if err != nil {
-		log.Fatal(err)
-	}
-	img, _, err := image.Decode(bytes.NewReader(dec))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// ebiten.Image にして保持
-	CanvasImage = ebiten.NewImageFromImage(img)
 }
 
 func DrawFaceRect(dets [][]int) {
