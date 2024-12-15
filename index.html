@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <script src="lib/wasm_exec.js"></script>
-<link rel="preload" href="./cascade/facefinder" as="fetch">
+<link rel="preload" href="https://ulxsth.github.io/square-face-tetris/cascade/facefinder" as="fetch">
+<link rel="preload" href="https://ulxsth.github.io/square-face-tetris/cascade/puploc" as="fetch">
 <script>
 const go = new Go();
 WebAssembly.instantiateStreaming(fetch("dist/main.wasm"), go.importObject).then(result => {
