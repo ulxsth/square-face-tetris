@@ -228,6 +228,7 @@ func (f *Face) GetEmotionByIndex(index int) string {
 			return "SUS"
 	default:
 			return "UNKNOWN"
+	}
 }
 
 // 2点間の距離を求める。
