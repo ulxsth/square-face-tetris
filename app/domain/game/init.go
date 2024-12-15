@@ -41,11 +41,14 @@ func (g *GameWrapper) ResetGame() error {
     g.Game.State = "playing"                // 状態のリセット
     g.Game.KeyState = make(map[ebiten.Key]bool) // キー状態のリセット
     g.Game.Current = g.Game.GenerateRandomTetromino() // 現在のテトリミノ
-    // Next[0]からNext[4]までを生成
-		g.Game.Next = make([]*domain.Tetromino, 5)
+    // Next[0]からNext[5]までを生成
+		g.Game.Next = make([]*domain.Tetromino, 6)
 		g.Game.Next[0] = g.Game.GenerateRandomTetromino()
-		g.Game.Next[1], g.Game.Next[2], g.Game.Next[3] = g.Game.GenerateUniqueTetrominos()
+		g.Game.Next[1], g.Game.Next[2], g.Game.Next[3], g.Game.Next[4] = g.Game.GenerateUniqueTetrominos()
     g.Game.Score = 0                       // スコアのリセット
+		g.Game.Face.NewFace()
+		g.Game.DrawedEmote = ""
+
 		return nil
 }
 

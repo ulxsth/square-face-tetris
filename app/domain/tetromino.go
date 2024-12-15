@@ -76,18 +76,59 @@ func (g *Game) ShiftTetrominoQueue() {
 	// 現在のテトリミノをNext[0]として設定
 	g.Current = g.Next[0]
 
-	// Next[1] から Next[3] の中からランダムで選ぶ
-	randomIndex := rand.Intn(3) + 1 // 1～3 の間でランダムなインデックスを生成
-	g.Next[0] = g.Next[randomIndex]
+	// Trueの感情を取得
+	emotionIndexes := g.Face.GetEmotionIndexes()
+
+  // Trueの感情から抽選
+	drawedIndex := g.drawingEmotionFromFlags(emotionIndexes)
+	g.DrawedEmote = g.Face.GetEmotionByIndex(drawedIndex)
+	g.Next[0] = g.Next[drawedIndex]
 
 	// 次の次のテトリミノを生成
-	g.Next[1], g.Next[2], g.Next[3] = g.GenerateUniqueTetrominos()
+	g.Next[1], g.Next[2], g.Next[3], g.Next[4] = g.GenerateUniqueTetrominos()
 	// 現在のテトリミノの位置を初期化
 	g.Current.X = 3
 	g.Current.Y = 0
 
 	// ドロップのタイマーをリセット
 	g.LastDrop = time.Now()
+}
+
+// drawingEmotionFromFlags は、emotionIndexes の長さに基づいて
+// 最大値100をその長さで分割し、ランダムな確率に基づいてインデックスを返す
+// emotionIndexes が空の場合、1～3の間でランダムなインデックスを生成
+func (g *Game) drawingEmotionFromFlags(emotionIndexes []int) int {
+	// emotionIndexes が空かどうかをチェック
+	if len(emotionIndexes) == 0 {
+		// 空の場合は 1～3 の間でランダムなインデックスを生成
+		return rand.Intn(4) + 1 // 1, 2, 3, 4 のいずれかを返す
+	}
+
+	// emotionIndexes の長さを取得
+	numEmotions := len(emotionIndexes)
+
+	// 最大値100を分割するために、各インデックスが占める確率を計算
+	probabilityRanges := make([]int, numEmotions)
+	rangeSize := 100 / numEmotions
+
+	// 確率範囲を設定
+	for i := 0; i < numEmotions; i++ {
+		probabilityRanges[i] = (i + 1) * rangeSize
+	}
+
+	// ランダムな数値を生成（0から99まで）
+	rand.New(rand.NewSource(time.Now().UnixNano()))
+	randomValue := rand.Intn(100)
+
+	// ランダムな数値がどの範囲に属するか調べる
+	for i := 0; i < numEmotions; i++ {
+		if randomValue < probabilityRanges[i] {
+			return emotionIndexes[i] // 該当するインデックスを返す
+		}
+	}
+
+	// 万が一、どれにも該当しなかった場合は最後のインデックスを返す
+	return emotionIndexes[numEmotions-1]
 }
 
 // ランダムにテトリミノを生成するヘルパー関数
@@ -104,7 +145,46 @@ func (g *Game) GenerateRandomTetromino() *Tetromino {
 	return &newTetromino
 }
 
-func (g *Game) GenerateUniqueTetrominos() (*Tetromino, *Tetromino, *Tetromino) {
+func (f *Face) GetEmotionIndexes() []int {
+	// 結果を格納するスライス
+	var emotionIndexes []int
+
+	// 各感情フラグに基づいてインデックスを追加
+	if f.EmoteFlags[constants.SMILE] {
+		emotionIndexes = append(emotionIndexes, 0) // SMILE の場合
+	}
+	if f.EmoteFlags[constants.ANGRY] {
+		emotionIndexes = append(emotionIndexes, 1) // ANGRY の場合
+	}
+	if f.EmoteFlags[constants.SURPRISED] {
+		emotionIndexes = append(emotionIndexes, 2) // SURPRISED の場合
+	}
+	if f.EmoteFlags[constants.SUS] {
+		emotionIndexes = append(emotionIndexes, 3) // SUS の場合
+	}
+
+	// 結果としてインデックスの配列を返す
+	return emotionIndexes
+}
+
+func (f *Face) GetEmotionByIndex(index int) string {
+	// 感情に対応する文字列を返す
+	switch index {
+	case 0:
+			return "SMILE"
+	case 1:
+			return "ANGRY"
+	case 2:
+			return "SURPRISED"
+	case 3:
+			return "SUS"
+	default:
+			return "UNKNOWN"
+	}
+}
+
+
+func (g *Game) GenerateUniqueTetrominos() (*Tetromino, *Tetromino, *Tetromino, *Tetromino) {
 	// シャッフルアルゴリズムを使用して重複を防ぐ
 	indexes := rand.Perm(len(Tetrominos)) // 0からlen(Tetrominos)-1までのランダム順列を生成
 
@@ -124,8 +204,13 @@ func (g *Game) GenerateUniqueTetrominos() (*Tetromino, *Tetromino, *Tetromino) {
 		Shape:    append([][]int{}, Tetrominos[indexes[2]].Shape...), // Shapeを新しくコピー
 		Rotation: 0,
 	}
+	tetromino4 := Tetromino{
+		Color:    Tetrominos[indexes[3]].Color,
+		Shape:    append([][]int{}, Tetrominos[indexes[3]].Shape...), // Shapeを新しくコピー
+		Rotation: 0,
+	}
 
-	return &tetromino1, &tetromino2, &tetromino3
+	return &tetromino1, &tetromino2, &tetromino3, &tetromino4
 }
 
 // テトリミノの回転処理
