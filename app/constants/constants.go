@@ -19,7 +19,7 @@ const (
 	CAMERA_PREVIEW_FPS = 5
 
 	// 表情分析を行う頻度
-	EMOTION_ANALYSIS_FPS = 10
+	EMOTION_ANALYSIS_FPS = 20
 
 	// landmark の各点（0-14）
 	// landmark は15つの座標から構成される配列

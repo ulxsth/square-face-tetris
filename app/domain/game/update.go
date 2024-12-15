@@ -51,17 +51,17 @@ func (g *GameWrapper) updatePlaying() {
 	// ユーザー入力でテトリミノを操作
 	if inpututil.IsKeyJustPressed(ebiten.KeyLeft) && g.Game.IsValidPosition(g.Game.Current, -1, 0) ||
 	   wasm.MoveLeft && g.Game.IsValidPosition(g.Game.Current, -1, 0) {
-			// wasm.MoveLeft = false
+			wasm.MoveLeft = false
 		g.Game.Current.X -= 1
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyRight) && g.Game.IsValidPosition(g.Game.Current, 1, 0) || 
 	wasm.MoveRight && g.Game.IsValidPosition(g.Game.Current, 1, 0) {
-		  // wasm.MoveRight = false
+		  wasm.MoveRight = false
 		g.Game.Current.X += 1
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyDown) && g.Game.IsValidPosition(g.Game.Current, 0, 1) || 
 	wasm.MoveDown && g.Game.IsValidPosition(g.Game.Current, 0, 1) {
-		  // wasm.MoveDown = false
+		  wasm.MoveDown = false
 		g.Game.Current.Y += 1
 	}
 

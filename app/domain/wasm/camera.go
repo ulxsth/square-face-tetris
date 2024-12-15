@@ -151,7 +151,7 @@ func UpdateCamera() {
 			Face.Update(landmarks, choices)
 
 			// 鼻の位置をチェック
-			CheckNosePosition(landmarks, 125, 50)
+			CheckNosePosition(landmarks, 50, 25)
 		}
 	}
 
