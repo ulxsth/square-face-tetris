@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 // ゲームの状態更新
@@ -47,10 +48,10 @@ func (g *GameWrapper) updatePlaying() {
 	}
 
 	// ユーザー入力でテトリミノを操作
-	if ebiten.IsKeyPressed(ebiten.KeyLeft) && g.Game.IsValidPosition(g.Game.Current, -1, 0) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyLeft) && g.Game.IsValidPosition(g.Game.Current, -1, 0) {
 		g.Game.Current.X -= 1
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyRight) && g.Game.IsValidPosition(g.Game.Current, 1, 0) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyRight) && g.Game.IsValidPosition(g.Game.Current, 1, 0) {
 		g.Game.Current.X += 1
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyDown) && g.Game.IsValidPosition(g.Game.Current, 0, 1) {
