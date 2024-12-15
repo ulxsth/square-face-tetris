@@ -36,7 +36,7 @@ func (g *GameWrapper) ResetGame() error {
     // ゲームごとの状態をリセット
     g.Game.Board.Init()                     // ボードの初期化
     g.Game.StartTime = time.Now()           // 開始時刻の設定
-    g.Game.TimeLimit = 10 * time.Minute     // タイムリミットの設定
+    g.Game.TimeLimit = 3 * time.Minute     // タイムリミットの設定
     g.Game.State = "playing"                // 状態のリセット
     g.Game.KeyState = make(map[ebiten.Key]bool) // キー状態のリセット
     g.Game.Current = g.Game.GenerateRandomTetromino() // 現在のテトリミノ

@@ -1,0 +1,223 @@
+package main
+
+import (
+	"log"
+	"time"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"image/color"
+)
+
+const (
+	screenWidth  = 640
+	screenHeight = 640
+	blockSize    = 30 // 各テトリミノブロックのサイズ
+)
+
+// ゲームの状態
+type Game struct {
+	board   [20][10]int // 10x20 のボード
+	current *Tetromino  // 現在のテトリミノ
+	lastDrop    time.Time   // 最後にテトリミノが落下した時刻
+	dropInterval time.Duration // 落下間隔
+	keyState     map[ebiten.Key]bool // キーの押下状態
+}
+
+// テトリミノの定義
+type Tetromino struct {
+	x, y      int       // テトリミノの位置
+	color     color.Color // テトリミノの色
+	shape     [][]int   // テトリミノの形状（回転可能）
+	rotation  int       // 回転状態（0, 90, 180, 270度）
+}
+
+// 各テトリミノの形状を定義
+var tetrominos = []Tetromino{
+	{
+		color: color.RGBA{255, 0, 0, 255}, // 赤
+		shape: [][]int{
+			{1, 1, 1, 1}, // I
+		},
+	},
+	{
+		color: color.RGBA{0, 255, 0, 255}, // 緑
+		shape: [][]int{
+			{1, 1},
+			{1, 1}, // O
+		},
+	},
+	// 他のテトリミノも同様に追加できます
+}
+
+// テトリミノを新しく取得
+func (g *Game) newTetromino() {
+	g.current = &tetrominos[0] // 現時点では I 型のテトリミノを設定
+	g.current.x = 3
+	g.current.y = 0
+	g.lastDrop = time.Now() // 新しいテトリミノの生成時にタイマーをリセット
+}
+
+// テトリミノの回転処理
+func (g *Game) rotateTetromino() {
+	// 現在の形状の行数と列数を取得
+	rows := len(g.current.shape)
+	cols := len(g.current.shape[0])
+
+	// 回転後の形状を計算
+	newShape := make([][]int, cols)
+	for i := range newShape {
+		newShape[i] = make([]int, rows)
+	}
+
+	// 回転処理：90度回転
+	for y := 0; y < rows; y++ {
+		for x := 0; x < cols; x++ {
+			newShape[x][rows-1-y] = g.current.shape[y][x]
+		}
+	}
+
+	// 回転後の形状を適用
+	g.current.shape = newShape
+
+	// 回転状態を更新
+	g.current.rotation = (g.current.rotation + 90) % 360
+}
+
+
+// ボードの範囲と重なりをチェック
+func (g *Game) isValidPosition(tetromino *Tetromino, offsetX, offsetY int) bool {
+	for y := 0; y < len(tetromino.shape); y++ {
+		for x := 0; x < len(tetromino.shape[y]); x++ {
+			if tetromino.shape[y][x] == 1 {
+				newX := tetromino.x + x + offsetX
+				newY := tetromino.y + y + offsetY
+
+				// ボードの範囲外をチェック
+				if newX < 0 || newX >= len(g.board[0]) || newY >= len(g.board) {
+					return false
+				}
+
+				// 他のブロックと重なっていないかをチェック
+				if newY >= 0 && g.board[newY][newX] == 1 {
+					return false
+				}
+			}
+		}
+	}
+	return true
+}
+
+// ボードにテトリミノを固定
+func (g *Game) lockTetromino() {
+	for y := 0; y < len(g.current.shape); y++ {
+			for x := 0; x < len(g.current.shape[y]); x++ {
+					if g.current.shape[y][x] == 1 {
+							g.board[g.current.y+y][g.current.x+x] = 1
+					}
+			}
+	}
+	g.current = nil // 新しいテトリミノを生成
+}
+
+// ゲームの状態更新
+func (g *Game) Update() error {
+	if g.current == nil {
+		g.newTetromino()
+	}
+
+	// ユーザー入力でテトリミノを操作
+	if ebiten.IsKeyPressed(ebiten.KeyLeft) && g.isValidPosition(g.current, -1, 0) {
+		g.current.x -= 1
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyRight) && g.isValidPosition(g.current, 1, 0) {
+		g.current.x += 1
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyDown) && g.isValidPosition(g.current, 0, 1) {
+		g.current.y += 1
+	}
+
+	// 回転用ボタンの処理（1回の入力で1回だけ回転）
+	if ebiten.IsKeyPressed(ebiten.KeyUp) && !g.keyState[ebiten.KeyUp] {
+		g.rotateTetromino()
+		g.keyState[ebiten.KeyUp] = true // 回転ボタンの押下を記録
+	}
+
+	// 2秒間隔で落下
+	if time.Since(g.lastDrop) > g.dropInterval {
+		if g.isValidPosition(g.current, 0, 1) {
+			g.current.y += 1
+		} else {
+			// テトリミノが固定されるべき条件を満たす
+			g.lockTetromino()
+		}
+		g.lastDrop = time.Now() // 落下タイマーをリセット
+	}
+
+	// キーが離された場合に状態をリセット（回転だけリセット）
+	g.ResetKeyState()
+
+	return nil
+}
+
+// キーが離された場合に状態をリセット
+func (g *Game) ResetKeyState() {
+	for key := range g.keyState {
+		if !ebiten.IsKeyPressed(key) {
+			g.keyState[key] = false // キーが離されたら状態をリセット
+		}
+	}
+}
+
+
+// ゲームの描画
+func (g *Game) Draw(screen *ebiten.Image) {
+	// ボードの描画（固定されたブロック）
+	for y := 0; y < 20; y++ {
+		for x := 0; x < 10; x++ {
+			if g.board[y][x] == 1 {
+				blockImage := ebiten.NewImage(blockSize, blockSize)
+				blockImage.Fill(color.RGBA{0, 0, 255, 255}) // 青
+				opts := &ebiten.DrawImageOptions{}
+				opts.GeoM.Translate(float64(x*blockSize), float64(y*blockSize))
+				screen.DrawImage(blockImage, opts)
+			}
+		}
+	}
+
+	// 現在のテトリミノの描画
+	if g.current != nil {
+		for y := 0; y < len(g.current.shape); y++ {
+			for x := 0; x < len(g.current.shape[y]); x++ {
+				if g.current.shape[y][x] == 1 {
+					blockImage := ebiten.NewImage(blockSize, blockSize)
+					blockImage.Fill(g.current.color)
+					opts := &ebiten.DrawImageOptions{}
+					opts.GeoM.Translate(float64((g.current.x+x)*blockSize), float64((g.current.y+y)*blockSize))
+					screen.DrawImage(blockImage, opts)
+				}
+			}
+		}
+	}
+}
+
+// レイアウトの設定（ウィンドウのサイズ）
+func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+	screenWidth = 640  // 画面幅を640に設定
+	screenHeight = 640 // 画面高さを480に設定
+	return screenWidth, screenHeight
+}
+
+
+func main() {
+	// ゲームインスタンスの生成
+	game := &Game{
+		dropInterval: 2 * time.Second, // 落下間隔を2秒に設定
+		keyState:     make(map[ebiten.Key]bool), // キーの押下状態を管理
+	}
+
+	ebiten.SetWindowSize(screenWidth, screenHeight)
+	ebiten.SetWindowTitle("Tetris")
+	if err := ebiten.RunGame(game); err != nil {
+		log.Fatal(err)
+	}
+}
