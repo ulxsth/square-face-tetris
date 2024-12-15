@@ -40,10 +40,10 @@ var InstructionText = []string{
 }
 
 var EmoText = []string{
+	"SMILE",
 	"ANGRY",
 	"SURPRISED",
 	"SUS",
-	"UNKNOWN",
 }
 
 // スコア画面の描画
