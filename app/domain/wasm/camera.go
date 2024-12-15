@@ -37,6 +37,10 @@ var (
 	previewHeight float64
 
 	Face domain.Face
+	IsFaceInited bool
+
+	lastEmotionAnalysisTime time.Time
+	emotionAnalysisInterval = time.Second / constants.EMOTION_ANALYSIS_FPS
 )
 
 func InitCamera() {
@@ -107,33 +111,42 @@ func UpdateCamera() {
 	js.CopyBytesToGo(data, uint8Arr)
 	pixels := rgbaToGrayscale(data)
 
-	// det.DetectFaces は画像データを受け取り、以下のデータを返す
-	// [row, col, scale, q]
-	// row, col: 顔の中心座標
-	// scale: 顔のスケール
-	// q: 顔であることの信頼度
-	res := det.DetectFaces(pixels, cameraHeight, cameraWidth)
-	if len(res) > 0 {
-		fmt.Printf("Face detected: [%v,%v], scale: %v, reliability: %v\n", res[0][0], res[0][1], res[0][2], res[0][3])
-		DrawFaceRect(res)
+	// 表情分析の頻度を制御
+	if time.Since(lastEmotionAnalysisTime) >= emotionAnalysisInterval {
+		lastEmotionAnalysisTime = time.Now()
+		// det.DetectFaces は画像データを受け取り、以下のデータを返す
+		// [row, col, scale, q]
+		// row, col: 顔の中心座標
+		// scale: 顔のスケール
+		// q: 顔であることの信頼度
+		res := det.DetectFaces(pixels, cameraHeight, cameraWidth)
+		if len(res) > 0 {
+			fmt.Printf("Face detected: [%v,%v], scale: %v, reliability: %v\n", res[0][0], res[0][1], res[0][2], res[0][3])
+			DrawFaceRect(res)
 
-		// 両目の位置を取得
-		leftEye := det.DetectLeftPupil(res[0])
-		rightEye := det.DetectRightPupil(res[0])
+			// 両目の位置を取得
+			leftEye := det.DetectLeftPupil(res[0])
+			rightEye := det.DetectRightPupil(res[0])
 
-		// 顔のランドマークを取得
-		landmarks := det.DetectLandmarkPoints(leftEye, rightEye)
-		DrawLandmarkPoints(landmarks)
-		Face = domain.NewFace(landmarks)
+			// 顔のランドマークを取得
+			landmarks := det.DetectLandmarkPoints(leftEye, rightEye)
+			DrawLandmarkPoints(landmarks)
 
-		// 顔の情報を更新
-		choices := []int {
-			constants.SMILE,
-			constants.ANGRY,
-			constants.SURPRISED,
-			constants.SUS,
+			// 顔の情報が未設定の場合、新しい顔を作成
+			if !IsFaceInited {
+				Face = domain.NewFace(landmarks)
+				IsFaceInited = true
+			}
+
+			// 顔の情報を更新
+			choices := []int{
+				constants.SMILE,
+				constants.ANGRY,
+				constants.SURPRISED,
+				constants.SUS,
+			}
+			Face.Update(landmarks, choices)
 		}
-		Face.Update(landmarks, choices)
 	}
 
 	// canvas 経由で画面を base64 形式で取得

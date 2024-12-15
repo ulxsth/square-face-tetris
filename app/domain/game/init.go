@@ -47,6 +47,8 @@ func (g *GameWrapper) ResetGame() error {
     g.Game.Score = 0
 		g.Game.DrawedEmote = ""
 
+		// wasm.ResetFaceSnapshot()
+
 		return nil
 }
 
