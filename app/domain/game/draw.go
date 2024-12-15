@@ -29,6 +29,8 @@ func (g *GameWrapper) Draw(screen *ebiten.Image) {
 	case "showingScore":
 		g.drawScore(screen)
 	}
+
+	wasm.DrawCameraPrev(screen)
 }
 
 var InstructionText = []string{
@@ -114,6 +116,17 @@ func (g *GameWrapper) drawPlaying(screen *ebiten.Image) {
 		Size:   normalFontSize,
 	}, op2)
 
+		// スコアの表示
+
+		emotionText := fmt.Sprintf("%s", g.Game.DrawedEmote)
+		op6 := &text.DrawOptions{}
+		op6.GeoM.Translate(x, 40)
+		op6.ColorScale.ScaleWithColor(color.White)
+		text.Draw(screen, emotionText, &text.GoTextFace{
+			Source: mplusFaceSource,
+			Size:   normalFontSize,
+		}, op2)
+
 	// ボードの描画（固定されたブロック）
 	for y := 0; y < constants.BoardHeight; y++ {
 		for x := 0; x < constants.BoardWidth; x++ {
@@ -126,7 +139,6 @@ func (g *GameWrapper) drawPlaying(screen *ebiten.Image) {
 			}
 		}
 
-		wasm.DrawCameraPrev(screen)
 		ebitenutil.DebugPrint(screen, fmt.Sprintf("%f", ebiten.ActualFPS()))
 	}
 
@@ -154,7 +166,7 @@ func (g *GameWrapper) DrawNextTetromino(screen *ebiten.Image) {
 	// 「Next」のラベルを描画
 	nextLabel := "Next:"
 	op := &text.DrawOptions{}
-	op.GeoM.Translate(constants.BoardWidth*constants.BlockSize+10, 128)
+	op.GeoM.Translate(constants.BoardWidth*constants.BlockSize + constants.BlockSize, 32)
 	op.ColorScale.ScaleWithColor(color.White)
 	text.Draw(screen, nextLabel, &text.GoTextFace{
 		Source: mplusFaceSource,
@@ -170,8 +182,8 @@ func (g *GameWrapper) DrawNextTetromino(screen *ebiten.Image) {
 					blockImage.Fill(g.Game.Next[0].Color) // 次のテトロミノの色
 					opts := &ebiten.DrawImageOptions{}
 					opts.GeoM.Translate(
-						float64(constants.BoardWidth*constants.BlockSize+10+(x*constants.BlockSize)),
-						float64(160+(y*constants.BlockSize)),
+						float64(constants.BoardWidth*constants.BlockSize+ constants.BlockSize +(x*constants.BlockSize)),
+						float64(64+(y*constants.BlockSize)),
 					)
 					screen.DrawImage(blockImage, opts)
 				}
@@ -185,7 +197,7 @@ func (g *GameWrapper) DrawAfterNextTetromino(screen *ebiten.Image) {
 	// 「After Next」のラベルを描画
 	afterNextLabel := "After Next:"
 	op := &text.DrawOptions{}
-	op.GeoM.Translate(constants.BoardWidth*constants.BlockSize+10, 254) // ラベルの位置調整
+	op.GeoM.Translate(constants.BoardWidth*constants.BlockSize+ constants.BlockSize, 160) // ラベルの位置調整
 	op.ColorScale.ScaleWithColor(color.White)
 	text.Draw(screen, afterNextLabel, &text.GoTextFace{
 		Source: mplusFaceSource,
@@ -193,7 +205,7 @@ func (g *GameWrapper) DrawAfterNextTetromino(screen *ebiten.Image) {
 	}, op)
 
 	// 1から4まで次のテトロミノを描画
-	for i := 1; i <= 4 && i <= len(g.Game.Next); i++ {
+	for i := 1; i <= 5 && i <= len(g.Game.Next); i++ {
 		if g.Game.Next[i] != nil {
 			for y := 0; y < len(g.Game.Next[i].Shape); y++ {
 				for x := 0; x < len(g.Game.Next[i].Shape[y]); x++ {
@@ -202,12 +214,12 @@ func (g *GameWrapper) DrawAfterNextTetromino(screen *ebiten.Image) {
 						blockImage.Fill(g.Game.Next[i].Color) // 次のテトロミノの色
 						opts := &ebiten.DrawImageOptions{}
 						opts.GeoM.Translate(
-							float64(constants.BoardWidth*constants.BlockSize+10+(x*constants.BlockSize)),
-							float64(192+(i)*128+(y*constants.BlockSize)), // Y座標をiに基づいて調整
+							float64(constants.BoardWidth*constants.BlockSize+constants.BlockSize+(x*constants.BlockSize)),
+							float64(64+(i)*128+(y*constants.BlockSize)), // Y座標をiに基づいて調整
 						)
 						screen.DrawImage(blockImage, opts)
 					}
-				} 
+				}
 			}
 		}
 	}
