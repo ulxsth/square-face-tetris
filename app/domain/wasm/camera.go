@@ -124,12 +124,7 @@ func UpdateCamera() {
 		// 顔のランドマークを取得
 		landmarks := det.DetectLandmarkPoints(leftEye, rightEye)
 		DrawLandmarkPoints(landmarks)
-
-		// 初めて顔を認識したときに face を初期化
-		if Face.Snapshot.Landmarks == nil {
-			Face = domain.NewFace(landmarks)
-			fmt.Printf("Face initialized: %+v\n", Face)
-		}
+		Face = domain.NewFace(landmarks)
 
 		// 顔の情報を更新
 		choices := []int {

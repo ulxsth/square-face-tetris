@@ -29,6 +29,8 @@ func (g *GameWrapper) Draw(screen *ebiten.Image) {
 	case "showingScore":
 		g.drawScore(screen)
 	}
+
+	wasm.DrawCameraPrev(screen)
 }
 
 var InstructionText = []string{
@@ -115,7 +117,7 @@ func (g *GameWrapper) drawPlaying(screen *ebiten.Image) {
 	}, op2)
 
 		// スコアの表示
-		
+
 		emotionText := fmt.Sprintf("%s", g.Game.DrawedEmote)
 		op6 := &text.DrawOptions{}
 		op6.GeoM.Translate(x, 40)
@@ -137,7 +139,6 @@ func (g *GameWrapper) drawPlaying(screen *ebiten.Image) {
 			}
 		}
 
-		wasm.DrawCameraPrev(screen)
 		ebitenutil.DebugPrint(screen, fmt.Sprintf("%f", ebiten.ActualFPS()))
 	}
 
@@ -218,7 +219,7 @@ func (g *GameWrapper) DrawAfterNextTetromino(screen *ebiten.Image) {
 						)
 						screen.DrawImage(blockImage, opts)
 					}
-				} 
+				}
 			}
 		}
 	}
